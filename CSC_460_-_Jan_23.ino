@@ -1,3 +1,4 @@
+//
 #include <scheduler.h>
 
 
@@ -57,7 +58,8 @@ void handle_servo(){
   int val = analogRead(servo_x_pin);            // reads the value of the potentiometer (value between 0 and 1023) 
   val = map(val, 0, 1023, 500, 2500);     // scale it to use it with the servo (value between 0 and 180) 
      
- //http://www.robotshop.com/blog/en/arduino-5-minute-tutorials-lesson-5-servo-motors-3636
+  //http://www.robotshop.com/blog/en/arduino-5-minute-tutorials-lesson-5-servo-motors-3636
+  // Thanks Geoff and Adam!
   digitalWrite(servo_out_pin,HIGH);
   delayMicroseconds(val);
   digitalWrite(servo_out_pin,LOW);   
@@ -72,6 +74,7 @@ void transmit(byte _b) {
   
   // set the byte sequence to send 
   // the 1,0 header bits
+  // Thanks Geoff and Adam!
   bit_seq <<= 2;
   bit_seq += 1;
   
@@ -132,6 +135,7 @@ void setup() {
   setupTimer3();    
   setupPWMTimer();  
   
+  // Thanks Neil!  
   Scheduler_Init();
   Scheduler_StartTask(0,20,check_button);
   Scheduler_StartTask(5,20,handle_servo);
