@@ -147,10 +147,10 @@ void setup() {
   pinMode(joystick_x_pin, INPUT);
   pinMode(joystick_y_pin, INPUT);
   
-  pinMode(10, OUTPUT);    
-  digitalWrite(10, LOW);   
+  pinMode(3, OUTPUT);    
+  digitalWrite(3, LOW);   
   delay(100);
-  digitalWrite(10, HIGH);
+  digitalWrite(3, HIGH);
   delay(100);
   
   Serial.begin(9600);
