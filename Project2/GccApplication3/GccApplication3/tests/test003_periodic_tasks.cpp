@@ -29,8 +29,8 @@ void p(){
         Task_Next();
     }
 
-    //print_trace();
-    Task_Create_System(dump_trace,0);
+    print_trace();
+    //Task_Create_System(dump_trace,0);
     Task_Terminate();
 }
 

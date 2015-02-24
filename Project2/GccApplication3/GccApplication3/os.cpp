@@ -62,21 +62,11 @@ static queue_t periodic_queue;
 /** Array holding references to the periodid tasks which exist*/
 static task_descriptor_t* periodic_tasks[MAXPROCESS];
 
-/** time remaining in current slot */
-//static volatile uint8_t ticks_remaining = 0;
-
-/*
-static uint8_t slot_task_finished = 0;
-static unsigned int slot_name_index = 0;
-static task_descriptor_t* name_to_task_ptr[MAXNAME + 1];
-static uint8_t name_in_PPP[MAXNAME + 1];
-*/
-
 /** Error message used in OS_Abort() */
 static uint8_t volatile error_msg = ERR_RUN_1_USER_CALLED_OS_ABORT;
 
 /** TICKs since boot */
-static uint16_t ticks_since_boot = 0;
+static uint16_t volatile ticks_since_boot = 0;
 
 
 /* Forward declarations */
@@ -92,13 +82,19 @@ extern "C" void TIMER1_COMPA_vect(void) __attribute__ ((signal, naked));
 
 static int kernel_create_task();
 static void kernel_terminate_task(void);
-/* queues */
 
+
+static int kernel_subscribe_service(SERVICE* s,int);
+static int kernel_publish_service(SERVICE* s);
+
+
+
+
+/* queues */
 static void enqueue(queue_t* queue_ptr, task_descriptor_t* task_to_add);
 static task_descriptor_t* dequeue(queue_t* queue_ptr);
 
 static void kernel_update_ticker(void);
-//static void check_PPP_names(void);
 static void idle (void);
 static void _delay_25ms(void);
 static uint16_t _Now(void);
@@ -219,22 +215,24 @@ static void kernel_handle_request(void)
          * making the request.
             Current Level -> New Task Level
             system  -> system   = don't switch process
-            system  -> periodic = don't switch process
+            system  -> periodic =  if the periodic task is created, and there
+                                is already a task enqueued then this is an error,
+                                else we don't need to do anything.
             system  -> RR       = don't switch process
             period  -> system   = system should run. periodic task involuntary 
                                 yields the processor to the system task.It should
                                 be placed back onto the periodic ready queue
                                 so that once the system task finishes it will 
                                 yield back to the periodic task. During this 
-                                time we don't wan't to keep ticking down on the
+                                time we don't want to keep ticking down on the
                                 WCET time.
-            period  -> period   = don't switch. If there happens to be a
-                                scheduling conflict later, then the OS will 
-                                catch that and then abort.
-        period  -> RR       = don't switch.
-            RR      -> system   = give the processor up.
-            RR      -> period   = we give the processor to the periodic task.
-            RR      -> RR       = don't give the processor up.
+            period  -> period   = don't switch. If we are tyring to run a periodic
+                                task immediately then we error out.
+            period  -> RR       = don't switch process.
+            RR      -> system   = give the processor up to the system task.
+            RR      -> period   = we give the processor to the periodic task iff
+                                the period task wants to run RIGHT now.
+            RR      -> RR       = don't swithc process.
          */
         if(kernel_request_retval)
         {
@@ -249,35 +247,36 @@ static void kernel_handle_request(void)
             else if( cur_task->level == PERIODIC  && kernel_request_create_args.level == SYSTEM)
             {
                 cur_task->state = READY;
-
-                /** period -> system task */
-                /** only 1 periodic task should be on the ready queue
-                    if( periodic_queue.head != NULL){
+                
+                /**
+                    Watch out for cases in which the system task you create
+                    takes a long time and another periodic task tries to get scheduled.
+                    Because we have reenqueue the cur_task, the new periodic task 
+                    will conflict and OS_Abort                    
                 */
-                if( periodic_queue.size >= 1) {
+                enqueue(&periodic_queue,cur_task);
+
+                /** 
+                    Wait I don't think this case can ever be reached
+                */
+                if( periodic_queue.size >= 2) {
                     error_msg = ERR_RUN_10_PERIODIC_TASK_TIME_CONFLICT;
                     OS_Abort();
                 }
-
-                /**
-                    Watch out for cases in which the system task you create
-                    takes a long time and another periodic task trys to get scheduled.
-                    because we have reenqueue the cur_task and the new periodic task
-                    will conflict and OS_Abort on ERR_RUN_9...
-                */
-                enqueue(&periodic_queue,cur_task);
             }
             else if(cur_task->level == PERIODIC && kernel_request_create_args.level == PERIODIC)
             {
 
-                /** trying to run a new periodic task while running */
+                /** trying to run a new periodic task while running already 
+                    running a periodic task */
                 if( kernel_request_create_args.start == ticks_since_boot){
                     error_msg = ERR_RUN_10_PERIODIC_TASK_TIME_CONFLICT;
                     OS_Abort();
                 }
 
                 /** error because we are trying to create two periodic tasks
-                    which should run on this tick */
+                    which should run on this tick
+                    When will this case ever be triggered?? */
                 if(periodic_queue.size >= 2)                
                 {
                     error_msg = ERR_RUN_9_TWO_PERIODIC_TASKS_READY;
@@ -292,6 +291,8 @@ static void kernel_handle_request(void)
             }
             else if(cur_task->level == RR && kernel_request_create_args.level == PERIODIC)
             {
+                /** the periodic task should prempt the RR task,only
+                    if has requested to run RIGHT now */
                 if( kernel_request_create_args.start == ticks_since_boot)
                 {
                     cur_task->state = READY;
@@ -594,11 +595,6 @@ void TIMER1_COMPA_vect(void)
      */
     kernel_request = TIMER_EXPIRED;
 
-    /*
-     * Prepare for next tick interrupt.`
-     */
-    //OCR1A += TICK_CYCLES;
-
 
     /*
      * Restore the kernel context. (The stack pointer is restored again.)
@@ -674,7 +670,7 @@ static int kernel_create_task()
 
         }
         if( kernel_request_create_args.start < ticks_since_boot ) {
-            /** periodic task must start "some" time after the current epoch */
+            /** periodic task must start "some" time after the current boot time */
             error_msg = ERR_RUN_7_INVALID_START_TIME;
             OS_Abort();
         }
@@ -748,7 +744,6 @@ static int kernel_create_task()
             p->wcet_counter = p->wcet;
 
             p->state = WAITING;
-            // put into the waiting list.
             
             // try to find a place to put the periodic task
             int candidate_index = -1;
@@ -769,7 +764,7 @@ static int kernel_create_task()
             /** this periodic task should run right now, so enqueue onto the 
                     ready queue */
             if( p->start == ticks_since_boot){                
-                p->state = READY;                
+                p->state = READY;
                 enqueue(&periodic_queue, p);
             }
 
@@ -804,13 +799,12 @@ static void kernel_terminate_task(void)
     cur_task->state = DEAD;
     if(cur_task->level == PERIODIC)
     {        
-        // remove the periodic tasks list
+        // remove the periodic task from the periodic_tasks array
         for(int i = 0;i < MAXPROCESS; ++i){
             if( periodic_tasks[i] == cur_task){
                 periodic_tasks[i] = NULL;
             }
-        }
-        //name_to_task_ptr[cur_task->name] = NULL;
+        }        
     }
     enqueue(&dead_pool_queue, cur_task);
 }
@@ -883,17 +877,13 @@ static void kernel_update_ticker(void)
         cur_task->level == PERIODIC  && 
         cur_task->state == RUNNING) 
     {
-        /* should we check to make sure the task is actually running */
-        EnableProfileSample1(); 
+        /* should we check to make sure the task is actually running */ 
         cur_task->wcet_counter -= 1;
 
         if (cur_task->wcet_counter <= 0) {
-            EnableProfileSample2();
-            error_msg = ERR_RUN_3_PERIODIC_TOOK_TOO_LONG;            
-            DisableProfileSample2();
+            error_msg = ERR_RUN_3_PERIODIC_TOOK_TOO_LONG;
             OS_Abort();
         }
-        DisableProfileSample1();
     }    
 
     /** iterate through all the periodic tasks and decrement their counters 
@@ -1315,9 +1305,10 @@ static int16_t mapi(int16_t x, int16_t in_min, int16_t in_max, int16_t out_min, 
 *     After doing the scale by 10 and division by TICK_CYCLES, we want to map the range
 *     0 to 10 to the range 0 and TICK in order to obtain the number of milliseconds we can count
 *     from the timer1 counter         
-*/  
+*/
 uint16_t _Now(){
-    return ticks_since_boot*TICK + mapi( ((TCNT1 + (TICK_CYCLES/(TICK << 1)))*10)/TICK_CYCLES,0,10,0,TICK);
+    static uint16_t half_tick_cycle = TICK_CYCLES/(TICK << 1);    
+    return ticks_since_boot*TICK + mapi( ((TCNT1 + half_tick_cycle)*10)/TICK_CYCLES,0,10,0,TICK);
 }
 
 

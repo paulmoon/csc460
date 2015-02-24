@@ -23,11 +23,8 @@ void dump_trace(){
 void p1(){
     /* run for 5 iterations  */    
     int i = 0;
-    for(i = 0;i < 5; ++i){
-        //EnableProfileSample1();        
-        add_to_trace(1); 
-        //DisableProfileSample1();       
-        
+    for(i = 0;i < 5; ++i){        
+        add_to_trace(1);                 
         Task_Next();        
     }
 
@@ -38,9 +35,7 @@ void p1(){
 void p2(){
     int i = 0;
     for(i = 0;i < 10; ++i){
-        //EnableProfileSample2();
         add_to_trace(2);
-        //DisableProfileSample2();
         Task_Next();
     }
     
@@ -53,8 +48,8 @@ extern int r_main(){
 
     add_to_trace(0);
     
-    Task_Create_Periodic(p1,1,10,2,0);
-    Task_Create_Periodic(p2,2,5,2,0);
+    Task_Create_Periodic(p1,1,10,2,4);
+    Task_Create_Periodic(p2,2,5,2,2);
 
     add_to_trace(0);
 
