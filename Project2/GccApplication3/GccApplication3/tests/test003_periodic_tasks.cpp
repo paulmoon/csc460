@@ -16,9 +16,8 @@ T003:0;0;25;75;125;175;225;
 #include "../profiler.h"
 
 void dump_trace(){
-    EnableProfileSample3(); 
-    print_trace();
-    DisableProfileSample3(); 
+    Task_Next();    
+    print_trace();    
 }
 
 void p(){
@@ -29,8 +28,8 @@ void p(){
         Task_Next();
     }
 
-    print_trace();
-    //Task_Create_System(dump_trace,0);
+    //print_trace();
+    Task_Create_RR(dump_trace,0);
     Task_Terminate();
 }
 

@@ -68,7 +68,12 @@ ERR_RUN_9_TWO_PERIODIC_TASKS_READY,
 
 ERR_RUN_10_PERIODIC_TASK_TIME_CONFLICT,
 
-ERR_RUN_12_WCET_OR_PERIOD_IS_ZERO,
+
+/** SERVICE runtime errors */
+ERR_RUN_11_INVALID_SERVICE_DESCRIPTOR,
+
+/** Periodict tasks should not be able to subscribe to a service */
+ERR_RUN_12_PERIODIC_CANT_SUBSCRIBE,
 
 };
 

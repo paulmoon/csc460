@@ -48,6 +48,16 @@ C_SRCS +=  \
 ../tests/test002_rr_task.cpp \
 ../tests/test003_periodic_tasks.cpp \
 ../tests/test004_multiple_periodic.cpp \
+../tests/test005_3_plus_periodic.cpp \
+../tests/test006_all_task_types.cpp \
+../tests/test007_period_errors.cpp \
+../tests/test008_create_too_many_tasks.cpp \
+../tests/test009_create_service.cpp \
+../tests/test010_service_system.cpp \
+../tests/test011_service_periodic.cpp \
+../tests/test012_service_rr.cpp \
+../tests/test013_service_all.cpp \
+../tests/test014_too_many_services.cpp \
 ../trace/trace.cpp \
 ../uart/uart.cpp
 
@@ -66,6 +76,16 @@ tests/test001_create_system_task.o \
 tests/test002_rr_task.o \
 tests/test003_periodic_tasks.o \
 tests/test004_multiple_periodic.o \
+tests/test005_3_plus_periodic.o \
+tests/test006_all_task_types.o \
+tests/test007_period_errors.o \
+tests/test008_create_too_many_tasks.o \
+tests/test009_create_service.o \
+tests/test010_service_system.o \
+tests/test011_service_periodic.o \
+tests/test012_service_rr.o \
+tests/test013_service_all.o \
+tests/test014_too_many_services.o \
 trace/trace.o \
 uart/uart.o
 
@@ -77,6 +97,16 @@ tests/test001_create_system_task.o \
 tests/test002_rr_task.o \
 tests/test003_periodic_tasks.o \
 tests/test004_multiple_periodic.o \
+tests/test005_3_plus_periodic.o \
+tests/test006_all_task_types.o \
+tests/test007_period_errors.o \
+tests/test008_create_too_many_tasks.o \
+tests/test009_create_service.o \
+tests/test010_service_system.o \
+tests/test011_service_periodic.o \
+tests/test012_service_rr.o \
+tests/test013_service_all.o \
+tests/test014_too_many_services.o \
 trace/trace.o \
 uart/uart.o
 
@@ -88,6 +118,16 @@ tests/test001_create_system_task.d \
 tests/test002_rr_task.d \
 tests/test003_periodic_tasks.d \
 tests/test004_multiple_periodic.d \
+tests/test005_3_plus_periodic.d \
+tests/test006_all_task_types.d \
+tests/test007_period_errors.d \
+tests/test008_create_too_many_tasks.d \
+tests/test009_create_service.d \
+tests/test010_service_system.d \
+tests/test011_service_periodic.d \
+tests/test012_service_rr.d \
+tests/test013_service_all.d \
+tests/test014_too_many_services.d \
 trace/trace.d \
 uart/uart.d
 
@@ -99,6 +139,16 @@ tests/test001_create_system_task.d \
 tests/test002_rr_task.d \
 tests/test003_periodic_tasks.d \
 tests/test004_multiple_periodic.d \
+tests/test005_3_plus_periodic.d \
+tests/test006_all_task_types.d \
+tests/test007_period_errors.d \
+tests/test008_create_too_many_tasks.d \
+tests/test009_create_service.d \
+tests/test010_service_system.d \
+tests/test011_service_periodic.d \
+tests/test012_service_rr.d \
+tests/test013_service_all.d \
+tests/test014_too_many_services.d \
 trace/trace.d \
 uart/uart.d
 
@@ -117,6 +167,26 @@ LINKER_SCRIPT_DEP+=
 
 
 # AVR32/GNU C Compiler
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

@@ -2,7 +2,7 @@
 
 /*
 Desired trace:
-    T006;0;0;1;2;3;4;2;2;3;2;2;4;2;3;2;2;3;2;42;1;2;3;2;2;4;...
+    T006;0;0;1;2;3;4;2;2;3;2;2;4;2;3;2;2;3;2;4;2;1;2;3;2;2;4;3;2;2;2...
 */
 
 #include <avr/io.h>
@@ -15,27 +15,26 @@ Desired trace:
 #include "../profiler.h"
 
 
-int global_counter = 30;
 int periodic_counter = 0;
 
 void dump_trace(){
-    Task_Next();
+    Task_Next();    
     print_trace();
 }
 
 void p(){
     uint16_t v = Task_GetArg();
-    for(;;){
+    periodic_counter += 1;
+
+	int i = 0;
+    for(i = 0;i < 20; ++i){
         add_to_trace(v);
-        if(global_counter <= 0){
-            break;
-        }
         Task_Next();
     }
 
-    periodic_counter -=1;
-    if(periodic_counter == 0){
-        Task_Create_System(dump_trace,0);   
+    periodic_counter -= 1;
+    if(periodic_counter <= 0){
+        Task_Create_RR(dump_trace,0);
     }
     Task_Terminate();
 }
@@ -43,7 +42,7 @@ void p(){
 
 extern int r_main(){    
     uart_init();
-    set_trace_test(3);    
+    set_trace_test(5);
 
     add_to_trace(0);
     
@@ -51,8 +50,6 @@ extern int r_main(){
     Task_Create_Periodic(p,2,10,1,1);
     Task_Create_Periodic(p,3,25,1,2);
     Task_Create_Periodic(p,4,40,1,3);
-
-    periodic_counter = 0;
 
     add_to_trace(0);
 

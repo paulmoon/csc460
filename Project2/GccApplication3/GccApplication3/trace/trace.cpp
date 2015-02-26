@@ -55,7 +55,7 @@ void print_trace()
         {
             returned_chars = sprintf((char*)&trace_buffer, "%u;", trace_array[i]);
             uart_write((uint8_t*)trace_buffer, returned_chars);
-            _delay_ms(1);
+            //_delay_ms(1);
         }
 
         trace_printed = 1;

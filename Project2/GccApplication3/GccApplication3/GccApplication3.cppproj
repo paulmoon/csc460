@@ -191,6 +191,36 @@
     <Compile Include="tests\test004_multiple_periodic.cpp">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="tests\test005_3_plus_periodic.cpp">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="tests\test006_all_task_types.cpp">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="tests\test007_period_errors.cpp">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="tests\test008_create_too_many_tasks.cpp">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="tests\test009_create_service.cpp">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="tests\test010_service_system.cpp">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="tests\test011_service_periodic.cpp">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="tests\test012_service_rr.cpp">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="tests\test013_service_all.cpp">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="tests\test014_too_many_services.cpp">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="trace\trace.cpp">
       <SubType>compile</SubType>
     </Compile>

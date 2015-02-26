@@ -1,0 +1,85 @@
+create system task
+    two system tasks?   
+
+create round robin task
+    no failures
+
+create periodic task
+    no failures
+    period task happens
+
+
+create too many tasks
+create system/periodic and rr
+    trace should be system, rr, system rr
+
+test now
+    rmain
+    delay
+    get now
+    delay
+    get now
+
+create periodic shcedule
+    1) single periodic task
+    2) two period task
+    3) 3+ tasks
+
+create invalid schedule    
+    1) start time less than now
+    2) wcet > period
+    3) two periods overlap
+
+
+create service from system
+create service from periodic
+create service from rr
+
+publish service from system
+publish service from periodic
+publish service from rr
+publish service from interrupt?
+    are interrupts tied to a a task?
+
+
+sub from system
+    create a system A
+    create a system B
+    create a periodic c
+    A creates a service s
+    A subs to s
+    B subs to s
+    C publishes to service s
+    A wakes up and consumes the service
+    B wakes up and consumes the service
+
+sub from periodic
+    should fail
+
+sub from rr
+    r_main creates a service s
+    create rr task A
+    create rr task B
+    create periodic task C
+    A subs to service s
+    B subs to service s
+    C happens an publishes to s
+    A wakes consumes s
+    B wakes consumes s
+    
+
+
+
+
+things that i want to fix
+1. Periodic_Task array, refactor into a queue.
+2. remove the wcet_counter variable from the task_descriptor_t struct
+    we only need a wcet_counted  and recorded_wcet_counted
+    when we dequeue from the periodic_queue we set the wcet_counted = 0 + recorded_wcet_counted
+    recorded_wcet_counted = 0 for most of the time except when we push a periodic
+    task to the periodic_queue list due to being prempted from a system task.
+    We do this in order to record the amount of wcet time we may have already accumulated.
+    Once the periodic task yields or terminates, we need to set recorded_wcet_counted to 0.
+4. Profile the context switching code
+    Profile the kernel_update_ticker code
+    Profile the Now function.

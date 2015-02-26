@@ -25,6 +25,7 @@ extern "C" {
 
 /** The maximum number of names. Currently the same as the number of tasks. */
 #define 	MAXNAME		MAXPROCESS
+#define     MAXSERVICE  MAXPROCESS
 
 /** The RTOS timer's prescaler divisor */
 #define TIMER_PRESCALER 8
@@ -72,7 +73,8 @@ typedef enum
 	
 	SERVICE_INIT,
 	SERVICE_SUBSCRIBE,
-	SERVICE_PUBLISH	
+	SERVICE_PUBLISH,
+    SERVICE_GETDATA
 }
 kernel_request_t;
 
@@ -121,10 +123,12 @@ struct td_struct
 	uint16_t						start;
     /** # of ticks for Worse-Case Execution Time */
     uint16_t                        wcet;
+
 	/** Counter for # of remaining ticks until ready state */
 	uint16_t						counter;	
     /** Counter for # of remaining ticks until ready state */
     uint16_t                        wcet_counter;	
+
 
     /** A link to the next task descriptor in the queue holding this task. */
     task_descriptor_t*              next;
@@ -140,9 +144,23 @@ typedef struct
     task_descriptor_t*  head;
     /** The last item in the queue. Undefined if the queue is empty. */
     task_descriptor_t*  tail;
+    /** keep track of the size of the queue */
     uint16_t            size;
 }
 queue_t;
+
+
+/**
+ * @brief A struct to hold all the task_descriptor waiting on the service
+ */
+struct service
+{
+    /* the queue of tasks currently waiting on this service*/
+    queue_t     queue;
+    
+    /* the value which was last published */
+    uint16_t    data;
+};
 
 #ifdef __cplusplus
 }

@@ -2,7 +2,7 @@
 
 /*
 Desired trace:
-T004:0;0;2;2;1;2;2;1;2;2;1;2;2;1;2;2;1;2;2;
+T004:0;0;2;1;2;2;1;2;2;1;2;2;1;2;2;1;2
     given that ticks are 5ms interval    
 */
 
@@ -28,7 +28,7 @@ void p1(){
         Task_Next();        
     }
 
-    Task_Create_System(dump_trace,0);
+    Task_Create_RR(dump_trace,0);
     Task_Terminate();
 }
 
