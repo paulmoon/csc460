@@ -1,18 +1,5 @@
-create system task
-    two system tasks?   
-
-create round robin task
-    no failures
-
-create periodic task
-    no failures
-    period task happens
-
-
-create too many tasks
-create system/periodic and rr
-    trace should be system, rr, system rr
-
+NOW(): Normal Operations
+========================
 test now
     rmain
     delay
@@ -20,32 +7,54 @@ test now
     delay
     get now
 
-create periodic shcedule
+
+SCHEDULING: Normal Operations
+=============================
+Create system task
+    two system tasks?   
+
+Create round robin task
+    no failures
+
+Create periodic task
+    no failures
+    period task happens
+
+Create system/periodic and rr
+    trace should be system, rr, system rr
+
+Create periodic schedule
     1) single periodic task
     2) two period task
     3) 3+ tasks
 
-create invalid schedule    
+
+SCHEDULING: Error Conditions
+=============================
+Create too many tasks
+
+Create invalid schedule    
     1) start time less than now
     2) wcet > period
     3) two periods overlap
 
 
-create service from system
-create service from periodic
-create service from rr
+PUBLISH & SUBSCRIBE: Normal Operations
+======================================
+Create service from system
+Create service from periodic
+Create service from rr
 
-publish service from system
-publish service from periodic
-publish service from rr
-publish service from interrupt?
+Publish service from system
+Publish service from periodic
+Publish service from rr
+Publish service from interrupt?
     are interrupts tied to a a task?
 
-
 sub from system
-    create a system A
-    create a system B
-    create a periodic c
+    Create a system A
+    Create a system B
+    Create a periodic c
     A creates a service s
     A subs to s
     B subs to s
@@ -53,20 +62,22 @@ sub from system
     A wakes up and consumes the service
     B wakes up and consumes the service
 
-sub from periodic
-    should fail
-
 sub from rr
     r_main creates a service s
-    create rr task A
-    create rr task B
-    create periodic task C
+    Create rr task A
+    Create rr task B
+    Create periodic task C
     A subs to service s
     B subs to service s
     C happens an publishes to s
     A wakes consumes s
     B wakes consumes s
     
+
+PUBLISH & SUBSCRIBE: Error Conditions
+======================================
+Periodic task subscribes to a service
+    Should fail
 
 
 
