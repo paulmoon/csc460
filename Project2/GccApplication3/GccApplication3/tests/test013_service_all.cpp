@@ -1,8 +1,8 @@
 #ifdef USE_TEST_013
 
 /*
-    Desired Trace:
-    T013;10;10;20;30;30;30;10;10;20;30;30;30;10;10;20;30;30;30;...;40
+    Desired Trace:    
+    T013;10;10;30;20;30;30;30;30;10;10;30;20;30;30;30;30;10;10;...;40
 */
 #include <avr/io.h>
 #include <avr/interrupt.h>
@@ -73,11 +73,15 @@ extern int r_main(){
     services[3] = Service_Init();
     p_count = 2;
     
-    Task_Create_System(s,0);
+
+    /* create system tasks which subscribe to services
+         Their argument determines the service they subscribe to */
+    Task_Create_System(s,0); 
     Task_Create_System(s,0);
     Task_Create_System(s,1);
     Task_Create_System(s,2);
 
+    /* Create producers for the services */
     Task_Create_Periodic(p1,10,5,2,0);
     Task_Create_Periodic(p2,20,5,2,1);
     Task_Create_RR(r,30); 

@@ -24,19 +24,17 @@ void r(){
         add_to_trace(v);
         g_count += 1;
     }
-    print_trace();
 }
 
 void r2(){
     int16_t count = 0;
     for(;;){
-        Service_Publish(services[0],count);
-        count += 1;
-
-        Service_Publish(services[0],count);
-        count += 1;
-
+        Service_Publish(services[0],count++);
+        Service_Publish(services[0],count++);
         Task_Next();
+        if( g_count >= 20){
+            print_trace();
+        }
     }
 }
 

@@ -18,8 +18,9 @@ SERVICE* services[3];
 int16_t count = 1;
 
 void p() {
+	int16_t service_i = Task_GetArg();	
     for (;;) {
-        Service_Publish(services[i], &v);
+        Service_Publish(services[service_i],count);
         count++;
         Task_Next();
     }
@@ -34,8 +35,8 @@ void r() {
 		add_to_trace(v);
 
         if (count > 20) {
-            Service_Publish(services[3], 40);
-            Task_Terminate();            
+            Service_Publish(services[2], 40);
+            Task_Terminate();
         }
 
         Task_Next();

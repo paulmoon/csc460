@@ -2,7 +2,7 @@
 
 /*
     Desired Trace:    
-    T010;0;0;1;-1;2;-2;0;0;1;-1;2;-2;0;0;1;-1;2;-2;...
+    T010;30;0;10;0;20;0;30;1;10;1;20;1;30;2;10;2;20;2;30;0;10;0;20;30;1;10;1;20;...
 */
 #include <avr/io.h>
 #include <avr/interrupt.h>
@@ -54,6 +54,7 @@ void s(){
 
 extern int r_main(){    
     uart_init();
+	set_trace_test(10);
 
     services[0] = Service_Init();
     services[1] = Service_Init();
