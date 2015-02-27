@@ -1,6 +1,7 @@
 #ifndef _PROFILER_H_
 #define _PROFILER_H_
 
+#include "trace/trace.h"
 #define PROFILECODE 1
 
 /* ATMega2560 
@@ -43,7 +44,7 @@ digial pin 37 -> 30
 #define ProfileBlip(a) {            \
 EnableProfileSample##a();           \
     volatile int count = 0;         \
-    for( int i = 0; i < 2; i++ )    \
+    for( int i = 0; i < 10; i++ )   \
     {                               \
         count++;                    \
     }                               \

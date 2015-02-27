@@ -8,15 +8,15 @@
 #include "trace/trace.h"
 #include "profiler.h"
 
-#define USE_TEST_014
+#define USE_TEST_011
 #include "tests/test000_now.cpp"
 #include "tests/test001_create_system_task.cpp"
-#include "tests/test002_rr_task.cpp"
-#include "tests/test003_periodic_tasks.cpp"
+#include "tests/test002_create_rr_task.cpp"
+#include "tests/test003_create_periodic_task.cpp"
 #include "tests/test004_multiple_periodic.cpp"
 #include "tests/test005_3_plus_periodic.cpp"
 #include "tests/test006_all_task_types.cpp"
-#include "tests/test007_period_errors.cpp"
+#include "tests/test007_periodic_errors.cpp"
 #include "tests/test008_create_too_many_tasks.cpp"
 #include "tests/test009_create_service.cpp"
 #include "tests/test010_service_system.cpp"
@@ -24,6 +24,8 @@
 #include "tests/test012_service_rr.cpp"
 #include "tests/test013_service_all.cpp"
 #include "tests/test014_too_many_services.cpp"
+#include "tests/test015_periodic_cant_subscribe.cpp"
+#include "tests/test016_service_RR_subscribe.cpp"
 
 
 #ifdef USE_MAIN

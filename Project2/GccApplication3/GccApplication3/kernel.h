@@ -159,7 +159,7 @@ struct service
     queue_t     queue;
     
     /* the value which was last published */
-    uint16_t    data;
+    int16_t    data;
 };
 
 #ifdef __cplusplus

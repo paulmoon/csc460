@@ -17,6 +17,8 @@
 #include "kernel.h"
 #include "error_code.h"
 #include "profiler.h"
+#include "uart/uart.h"
+#include "trace/trace.h"
 
 
 /* Needed for memset */
@@ -382,7 +384,7 @@ static void kernel_handle_request(void)
 		
     default:
         /* Should never happen */
-        error_msg = ERR_RUN_5_RTOS_INTERNAL_ERROR;
+        error_msg = ERR_RUN_5_RTOS_INTERNAL_ERROR;        
         OS_Abort();
         break;
     }
@@ -856,20 +858,20 @@ static void kernel_terminate_task(void)
  */
 static void kernel_service_init(void)
 {
-    kernel_request_service_ptr = NULL;
+    kernel_request_service_ptr = (SERVICE *)((uint16_t)0);
     if(num_services < MAXSERVICE)
     {
         /* Pass a number back to the task, but pretend it is a pointer.
          * It is the index of the event_queue plus 1.
          * (0 is return value for failure.)
          */
-        kernel_request_service_ptr = (SERVICE *)(uint16_t)(num_services + 1);            
+        kernel_request_service_ptr = (SERVICE *)((uint16_t)(num_services + 1));
         ++num_services;
     }
     else
     {
-        /* Should we error out instead of returning NULL? */            
-        kernel_request_service_ptr = (SERVICE *)(uint16_t)0;
+        /* Should we error out instead of returning NULL? */
+        kernel_request_service_ptr = (SERVICE *)((uint16_t)0);
     }
 }
 
@@ -893,7 +895,7 @@ static void kernel_service_subscribe(void)
         OS_Abort();
     }
     else
-    {
+    {        
         cur_task->state = WAITING;
         enqueue(&(services[service_index].queue),cur_task);
     }
@@ -914,21 +916,16 @@ static void kernel_service_publish(void)
         error_msg = ERR_RUN_11_INVALID_SERVICE_DESCRIPTOR;
         OS_Abort();
     }
-
-    if( kernel_request_service_data == NULL)
-    {
-        error_msg = ERR_RUN_5_RTOS_INTERNAL_ERROR;
-        OS_Abort();
-    }
-    /** record the data into the service structure */
-    services[service_index].data = kernel_request_service_data;
     
+    /** record the data into the service structure */
+    //Profile4();
+    //add_to_trace(4);
+    services[service_index].data = (int16_t) kernel_request_service_data;
 
     /* For every task which is currently waiting for this service, 
         we wake them up and place them on their associated ready queues */    
     task_descriptor_t* t = NULL;
     uint8_t will_be_prempted = 0;
-
     while( services[service_index].queue.size > 0 )
     {            
         t = dequeue(&(services[service_index].queue));
@@ -978,16 +975,32 @@ static void kernel_service_publish(void)
     
 }
 
-static void kernel_service_getdata(){
+static void kernel_service_getdata(void)
+{
     /* get the handle/index to the service struct */
     uint8_t service_index = (uint8_t)((uint16_t)(kernel_request_service_ptr) - 1);
-    if( service_index <= 0 || service_index >= num_services)
+    if( service_index < 0 || service_index >= num_services)
     {
         error_msg = ERR_RUN_11_INVALID_SERVICE_DESCRIPTOR;
         OS_Abort();
-    }
+    }    
 
-    kernel_request_service_data = services[service_index].data;
+    add_to_trace(8888);
+    add_to_trace((uint16_t)kernel_request_service_ptr);
+    add_to_trace(service_index);
+    add_to_trace((uint16_t)cur_task);
+    add_to_trace(8888);
+    
+    // if(service_index == 0 ){
+    //     add_to_trace(0);
+    // }else if(service_index == 1 ){
+    //     add_to_trace(1);
+    // }else if(service_index == 2 ){
+    //     add_to_trace(2);        
+    // }
+    // add_to_trace((uint16_t) cur_task);
+    
+    kernel_request_service_data =  (int16_t) services[service_index].data;
 }
 
 /*
@@ -1078,7 +1091,6 @@ static void kernel_update_ticker(void)
 {
     /* PORTD ^= LED_D5_RED; */
 	//PORTB ^= _BV(PB7);
-
     ++ticks_since_boot;
 
     if (cur_task != NULL && 
@@ -1498,7 +1510,7 @@ SERVICE *Service_Init(){
 
 /**
  * @brief. Current task subscribes to the service.
- * @param s the servic to subscribe to.
+ * @param s the service to subscribe to.
  * @param v a pointer in which to place the published result.
  *
  * This will make two kernel context switches.
@@ -1506,24 +1518,46 @@ SERVICE *Service_Init(){
  * the second is to retrieve the data from the service publish. 
  */
 void Service_Subscribe( SERVICE *s, int16_t *v ){
-    uint8_t sreg;
+    uint8_t sreg;    
 
     sreg = SREG;
     Disable_Interrupt();
 
+    kernel_request_service_ptr = (SERVICE*) s;
+    kernel_request_service_data = (int16_t)0;
     kernel_request = SERVICE_SUBSCRIBE;
-    kernel_request_service_ptr = s;    
+    
+    // add_to_trace((uint16_t)s);
+    //add_to_trace((uint16_t)cur_task);	
+
     enter_kernel();
 
-    /* Do an explicit kernel request to retrieve the data for this service */
-    kernel_request = SERVICE_GETDATA;
-    kernel_request_service_ptr = s;
-    enter_kernel();
+    *v = services[((uint16_t)(s)-1)].data;
 
-    // retrieve the actual data.
-    if( v != NULL){
-        *v = kernel_request_service_data;
-    }
+    // add_to_trace((uint16_t)s);
+    // add_to_trace((uint16_t)cur_task);    
+
+    /* Do an explicit kernel request to retrieve the data for this service 
+        This call should not switch to a different task.
+    */
+    // if( v != NULL){    
+    //     kernel_request_service_ptr = (SERVICE*) s;
+    //     kernel_request_service_data = (int16_t)0;
+    //     kernel_request = SERVICE_GETDATA;
+        
+
+    //     // add_to_trace((uint16_t)s);
+    //     // add_to_trace((uint16_t)cur_task);
+
+    //     enter_kernel();
+
+    //     // add_to_trace((uint16_t)s);
+    //     // add_to_trace((uint16_t)cur_task);
+
+    //     // retrieve the actual data.
+    //     *v = (int16_t) kernel_request_service_data;
+    // }
+        
     /* We break encapsulation and stuff if we do it this way, but it is
         more efficient
     *v = services[(uint8_t)(s-1)].data; */    
@@ -1546,8 +1580,8 @@ void Service_Publish( SERVICE *s, int16_t v ){
     Disable_Interrupt();
 
     kernel_request = SERVICE_PUBLISH;
-    kernel_request_service_ptr = s;
-    kernel_request_service_data = v;
+    kernel_request_service_ptr = (SERVICE*) s;
+    kernel_request_service_data = (int16_t) v;
     enter_kernel();
 
     SREG = sreg;
@@ -1581,11 +1615,12 @@ uint16_t Now() {
 
 /* Pulled straight out of the arduino libary 
     http://arduino.cc/en/reference/map
-*/
+
 static int16_t mapi(int16_t x, int16_t in_min, int16_t in_max, int16_t out_min, int16_t out_max)
 {
     return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
 }
+*/
 
 /**
 * ticks_since_boot*TICK 
@@ -1593,7 +1628,7 @@ static int16_t mapi(int16_t x, int16_t in_min, int16_t in_max, int16_t out_min, 
 * TCNT1 + (TICK_CYCLES/(TICK << 1)) 
 *     we want the number of CPU ticks counted by the internal timer, but we need to do some rounding.
 *     TICK_CYLCES/(TICK << 1) <==> (TICK_CYCLES/TICK)/2 
-*     this roundx the number by 0.5 milliseconds, and therefore allows us avoid
+*     this round the number by 0.5 milliseconds, and therefore allows us avoid
 *     case where we read a value of 4.999 ms but report 4.000 ms due to integer rounding.
 * (TCNT1 + (TICK_CYCLES/(TICK << 1))*10)/TICK_CYCLES
 *     We scale by 10 in order to avoid integer rounding when we divide by the TICK_CYCLES
@@ -1604,8 +1639,9 @@ static int16_t mapi(int16_t x, int16_t in_min, int16_t in_max, int16_t out_min, 
 *     from the timer1 counter         
 */
 uint16_t _Now(){
-    static uint16_t half_tick_cycle = TICK_CYCLES/(TICK << 1);    
-    return ticks_since_boot*TICK + mapi( ((TCNT1 + half_tick_cycle)*10)/TICK_CYCLES,0,10,0,TICK);
+    static uint16_t half_tick_cycle = TICK_CYCLES/(TICK << 1);
+    return ticks_since_boot*TICK + ((((TCNT1 + half_tick_cycle)*10)/TICK_CYCLES)*TICK)/TICK_CYCLES;
+    //return ticks_since_boot*TICK + mapi( ((TCNT1 + half_tick_cycle)*10)/TICK_CYCLES,0,10,0,TICK);
 }
 
 
@@ -1619,6 +1655,7 @@ int main()
 	DisableProfileSample1();
 	DisableProfileSample2();
 	DisableProfileSample3();
+    
     // EnableProfileSample1();
     // EnableProfileSample2();
     // EnableProfileSample3();

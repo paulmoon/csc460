@@ -16,12 +16,20 @@
 
 SERVICE* services[3];
 
+/* publisher of values. loop through each
+	of the services 0->2 */
 void s2(){
-    int16_t v = 0;
+    int16_t arg = Task_GetArg();
     int16_t i = 0;
     for(;;){
-        Service_Publish(services[i],v);
-        i = (i + 1)%3;        
+        add_to_trace(arg);
+        add_to_trace(i);
+        Service_Publish(services[i],i);
+		/* after this publish the two waiting services should be enqueued */
+		
+        i = (i + 1)%3;
+		
+		/* yield to the first system task */
         Task_Next();
     }
 }
@@ -29,15 +37,16 @@ void s2(){
 int count = 0;
 void s(){
     int16_t v;
-    int16_t i = 0;    
+    int16_t i = 0;
     int16_t arg = Task_GetArg();
 
     while( count < 30){
         Service_Subscribe(services[i],&v);
-        add_to_trace(v*arg);
+		add_to_trace(arg);
+        add_to_trace(v);
 
         i = (i + 1)%3;
-        count += 1;        
+        count += 1;
     }
 
     print_trace();
@@ -50,9 +59,9 @@ extern int r_main(){
     services[1] = Service_Init();
     services[2] = Service_Init();
     
-    Task_Create_System(s,0);
-    Task_Create_System(s,-1);
-    Task_Create_System(s2,0);    
+    Task_Create_System(s,10);
+    Task_Create_System(s,20);
+    Task_Create_System(s2,30);
    
     Task_Terminate();
     return 0;
