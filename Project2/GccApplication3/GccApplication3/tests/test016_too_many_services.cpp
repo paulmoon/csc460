@@ -1,4 +1,4 @@
-#ifdef USE_TEST_014
+#ifdef USE_TEST_016
 
 #include <avr/io.h>
 #include <avr/interrupt.h>
@@ -15,7 +15,7 @@ void p(){
     for(;;){
         SERVICE* s = Service_Init();
         Task_Next();
-		Service_Publish(s,50);
+		Service_Publish(s, 50);
     }
 }
 
@@ -23,7 +23,6 @@ extern int r_main(){
     uart_init();
 
     Task_Create_Periodic(p,10,5,2,0);
-    
     Task_Terminate();
     return 0;
 }
