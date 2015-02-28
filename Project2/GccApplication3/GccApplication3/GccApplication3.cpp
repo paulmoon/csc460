@@ -8,7 +8,7 @@
 #include "trace/trace.h"
 #include "profiler.h"
 
-#define USE_TEST_010
+#define USE_TEST_017
 #include "tests/test000_now.cpp"
 #include "tests/test001_create_system_task.cpp"
 #include "tests/test002_create_rr_task.cpp"
@@ -26,6 +26,7 @@
 #include "tests/test014_too_many_services.cpp"
 #include "tests/test015_periodic_cant_subscribe.cpp"
 #include "tests/test016_service_RR_subscribe.cpp"
+#include "tests/test017_service_interrupt.cpp"
 
 
 #ifdef USE_MAIN

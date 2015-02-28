@@ -173,6 +173,12 @@
     <Compile Include="os.h">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="periodic_tasks.cpp">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="periodic_tasks.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="profiler.h">
       <SubType>compile</SubType>
     </Compile>
@@ -225,6 +231,9 @@
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="tests\test016_service_RR_subscribe.cpp">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="tests\test017_service_interrupt.cpp">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="trace\trace.cpp">
