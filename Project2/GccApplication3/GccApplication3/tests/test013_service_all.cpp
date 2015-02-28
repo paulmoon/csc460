@@ -66,6 +66,7 @@ void r(){
 
 extern int r_main(){    
     uart_init();
+    set_trace_test(13);
 
     services[0] = Service_Init();
     services[1] = Service_Init();

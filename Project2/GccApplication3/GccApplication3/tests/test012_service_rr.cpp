@@ -1,6 +1,7 @@
 #ifdef USE_TEST_012
 
 /*
+Testing RR tasks subscribing to another RR publisher.
     Desired Trace:
     T012;1;1;3;3;5;5;7;7;9;9;11;11;13;13;15;15;17;17;19;19;
 */
@@ -40,6 +41,7 @@ void r2(){
 
 extern int r_main(){    
     uart_init();
+    set_trace_test(12);
 
     services[0] = Service_Init();    
     

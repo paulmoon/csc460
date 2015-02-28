@@ -1,6 +1,7 @@
 #ifdef USE_TEST_010
 
 /*
+    Testing system tasks subscribing to another system task publisher.
     Desired Trace:    
     T010;30;0;10;0;20;0;30;1;10;1;20;1;30;2;10;2;20;2;30;0;10;0;20;30;1;10;1;20;...
 */

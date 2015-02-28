@@ -44,7 +44,7 @@ void p2(){
 
 extern int r_main(){    
     uart_init();
-    set_trace_test(3);    
+    set_trace_test(4);    
 
     add_to_trace(0);
     
