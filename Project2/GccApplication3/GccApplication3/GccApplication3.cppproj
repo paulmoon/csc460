@@ -239,6 +239,9 @@
     <Compile Include="tests\test018_latest_publish.cpp">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="tests\test019_invalid_service_descriptor.cpp">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="trace\trace.cpp">
       <SubType>compile</SubType>
     </Compile>

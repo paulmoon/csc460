@@ -8,7 +8,7 @@
 #include "trace/trace.h"
 #include "profiler.h"
 
-#define USE_TEST_018
+#define USE_MAIN
 #include "tests/test000_now.cpp"
 #include "tests/test001_create_system_task.cpp"
 #include "tests/test002_create_rr_task.cpp"
@@ -28,14 +28,35 @@
 #include "tests/test016_too_many_services.cpp"
 #include "tests/test017_service_interrupt.cpp"
 #include "tests/test018_latest_publish.cpp"
+#include "tests/test019_invalid_service_descriptor.cpp"
 
 
 #ifdef USE_MAIN
+
+void s()
+{
+    Task_Terminate();
+}
+
 extern int r_main(){
-	DDRB |= _BV(PB7);
-	PORTB |= _BV(PB7); // turn on
-	PORTB &= ~(_BV(PB7)); // turn off
-	
+    uart_init();
+
+    int i = 0;
+    for(i =0 ;i < 7; ++i )
+    {
+        EnableProfileSample1();
+        Task_Create_System(s,0);
+        DisableProfileSample1();
+
+        // EnableProfileSample1();
+        // Task_Create_RR(s,0);
+        // DisableProfileSample1();
+
+        // EnableProfileSample1();
+        // Task_Create_Periodic(s,0,10,5,0);
+        // DisableProfileSample1();
+    }
+
 	return 0;
 }
 #endif
