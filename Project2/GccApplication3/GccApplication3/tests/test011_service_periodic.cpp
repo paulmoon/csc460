@@ -2,8 +2,9 @@
 
 /*
 Testing periodic task publishing to a service that a system level task subscribes to.
+A system task will subscribe to a periodic task which publishes values from 0 to 20.
     Desired Trace:
-    T016;0;1;2;3;4;5;6;...;18;19;20;
+    T011;0;1;2;3;4;5;6;...;18;19;20;
 */
 
 #include <avr/io.h>
@@ -21,7 +22,7 @@ SERVICE* services[1];
 void p() {
     int16_t count = 0;
 
-    while (count < 20) {
+    while (count <= 20) {
         Service_Publish(services[0], count++);
         Task_Next();
     }

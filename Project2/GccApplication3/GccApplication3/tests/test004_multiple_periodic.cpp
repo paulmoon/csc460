@@ -23,18 +23,18 @@ void dump_trace(){
 void p1(){
     /* run for 5 iterations  */    
     int i = 0;
-    for(i = 0;i < 5; ++i){        
+    for(i = 0; i < 5; ++i){        
         add_to_trace(1);                 
         Task_Next();        
     }
 
-    Task_Create_RR(dump_trace,0);
+    Task_Create_RR(dump_trace, 0);
     Task_Terminate();
 }
 
 void p2(){
     int i = 0;
-    for(i = 0;i < 10; ++i){
+    for(i = 0; i < 10; ++i){
         add_to_trace(2);
         Task_Next();
     }

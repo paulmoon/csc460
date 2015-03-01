@@ -1,7 +1,14 @@
 #ifdef USE_TEST_010
 
 /*
-    Testing system tasks subscribing to another system task publisher.
+Testing system tasks subscribing to another system task publisher.
+Syntax: S0(10) means a system level task #0 with argument 10.
+S0(10) and S1(20) are subscribers to a publisher S2(30). Before each task prints to the trace
+the value it published or got from a publisher, it prints out its argument.
+S2(30) publishes [0, 1, 2] repeatedly. So when S2 begins publishing, the trace is 30,0.
+Then the subscribers print out 10,0,20,0. When S2 publishes 1 (30, 1 to trace), the subscribers
+print 10,1,20,1.
+
     Desired Trace:    
     T010;30;0;10;0;20;0;30;1;10;1;20;1;30;2;10;2;20;2;30;0;10;0;20;30;1;10;1;20;...
 */
@@ -17,36 +24,36 @@
 
 SERVICE* services[3];
 
-/* publisher of values. loop through each
-	of the services 0->2 */
+/* Publishes values */
 void s2(){
     int16_t arg = Task_GetArg();
     int16_t i = 0;
-    for(;;){
+
+    for(;;) {
         add_to_trace(arg);
         add_to_trace(i);
-        Service_Publish(services[i],i);
-		/* after this publish the two waiting services should be enqueued */
+        Service_Publish(services[i], i);
+
+		/* After this publish, the two waiting services should be enqueued */
+        i = (i + 1) % 3;
 		
-        i = (i + 1)%3;
-		
-		/* yield to the first system task */
+		/* Yield to the first system task */
         Task_Next();
     }
 }
 
 int count = 0;
-void s(){
+void s() {
     int16_t v;
     int16_t i = 0;
     int16_t arg = Task_GetArg();
 
-    while( count < 30){
+    while (count < 30) {
         Service_Subscribe(services[i],&v);
 		add_to_trace(arg);
         add_to_trace(v);
 
-        i = (i + 1)%3;
+        i = (i + 1) % 3;
         count += 1;
     }
 

@@ -1,7 +1,21 @@
 #ifdef USE_TEST_013
 
 /*
-    Desired Trace:    
+System level tasks S1 and S2 subscribe to P1, periodic publisher (publishes 10).
+System task S3 subscribes to P2, another periodic publisher (publishes 20).
+System task S4 subscribes to R1, a RR publisher (publishes 30).
+
+The periodic tasks are scheduled so that
+
+P1:10      10      10      10      10
+P2:  20      20      20      20      20
+
+Since there are TWO subscribers to P1, [10,10] will be printed to the trace by the two subscribers.
+Since there is ONE subscriber to P2, only [20] will be printed to the trace.
+After P1 finishes and yields, RR runs before the scheduler dispatches P2 which preempts the RR task.
+This cycle runs until each of the publishers printed out 10 times, after which 40 is printed out.
+
+    Desired Trace:
     T013;10;10;30;20;30;30;30;30;10;10;30;20;30;30;30;30;10;10;...;40
 */
 #include <avr/io.h>
@@ -74,8 +88,7 @@ extern int r_main(){
     services[3] = Service_Init();
     p_count = 2;
     
-
-    /* create system tasks which subscribe to services
+    /* Create system tasks which subscribe to services
          Their argument determines the service they subscribe to */
     Task_Create_System(s,0); 
     Task_Create_System(s,0);

@@ -64,10 +64,12 @@ ERR_RUN_7_INVALID_START_TIME,
 
 ERR_RUN_8_NO_FREE_PERIODIC_BLOCK,
 
+/** Two periodic tasks are ready. */
 ERR_RUN_9_TWO_PERIODIC_TASKS_READY,
 
+/** Current task is periodic, and a periodic task is enqueued to the ready queue. 
+	More specific version of ERR_RUN_9_TWO_PERIODIC_TASKS_READY */
 ERR_RUN_10_PERIODIC_TASK_TIME_CONFLICT,
-
 
 /** SERVICE runtime errors */
 ERR_RUN_11_INVALID_SERVICE_DESCRIPTOR,

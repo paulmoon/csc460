@@ -1,8 +1,23 @@
 #ifdef USE_TEST_005
 
 /*
-Desired trace:
-    T006;0;0;1;2;3;4;2;2;3;2;2;4;2;3;2;2;3;2;4;2;1;2;3;2;2;4;3;2;2;2...
+test005: Test 4 periodic tasks.
+
+P1: Print out 1. Period=100, start time=0
+P2: Print out 2. Period=10,  start time=1
+P3: Print out 3. Period=25,  start time=2
+P4: Print out 4. Period=40,  start time=3
+
+P1: 1
+P2:  2          2          2          2          2          2
+P3:   3                         3                         3
+P4:    4                                        4
+
+Desired trace (r_main() prints out the first two zeros):
+    T005;0;0;1;2;3;4;2;2;3;2;2;4;2;3;2;2;3;2;4;2;1;2;3;2;2;4;3;2;2;2...
+
+The periodic_counter variable signals that all peridic tasks are complete, and 
+a RR task can safely be created to dump the trace.
 */
 
 #include <avr/io.h>

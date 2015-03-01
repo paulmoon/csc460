@@ -1,6 +1,9 @@
 #ifdef USE_TEST_015
 
 /*
+Periodic tasks were defined so that they cannot subscribe to a publisher.
+This test simply has a RR publisher and a periodic subscriber.
+Upon running this test, the LED should blink 12 times for the error ERR_RUN_12_PERIODIC_CANT_SUBSCRIBE.
     Desired Trace: None
 */
 

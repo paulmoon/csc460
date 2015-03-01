@@ -21,7 +21,7 @@ int g_count = 0;
 void r(){
     int16_t v;
     while( g_count < 20){
-        Service_Subscribe(services[0],&v);
+        Service_Subscribe(services[0], &v);
         add_to_trace(v);
         g_count += 1;
     }
@@ -30,7 +30,6 @@ void r(){
 void r2(){
     int16_t count = 0;
     for(;;){
-        Service_Publish(services[0],count++);
         Service_Publish(services[0],count++);
         Task_Next();
         if( g_count >= 20){

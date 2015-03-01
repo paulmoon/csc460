@@ -1,6 +1,15 @@
 #ifdef USE_TEST_002
 /*
-    desired trace:
+Test workflow:
+1) r_main() system task prints to trace 0 twice. Adds two RR tasks rr(1) and rr2(2). 
+2) RR Queue: rr(1), rr2(2). rr(1) runs, printing out (1) and going back to the queue.
+3) RR Queue: rr2(2), rr(1). rr2(2) runs. Adds 2, 2 to the trace, and creates rr(3). rr2(2) yields, going back to the queue.
+4) RR Queue: rr(1), rr(3), rr2(2). rr(1) runs, adding 1 to the trace.
+5) RR Queue: rr(3), rr2(2), rr(1). rr(3) runs, adding 3 to the trace.
+6) RR Queue: rr2(2), rr(1), rr(3). rr2(2) runs. Adds 2, 2 to the trace, and creates rr(4). Terminates.
+7) RR Queue: rr(1), rr(3), rr(4). From now on, [1, 3, 4] will be printed to the trace until it's full.
+
+Desired trace:
     T002;0;0;1;2;2;1;3;2;2;1;3;4;1;3;4;1;3;4...;1;3;4;
 */
 
@@ -17,8 +26,8 @@ void dump_trace(){
 }
 
 /**
-    RR task which adds to the trace.
-    As the variuos rr tasks compute they will add to the trace.
+    RR task which adds its argument to the trace.
+    Various RR tasks will add to the trace as they run.
     i.e 1;3;4;1;3;4;    
 */
 void rr(){    
@@ -36,7 +45,7 @@ void rr(){
 }
 
 /**
-    A RR task which creates a couple RR tasks
+    A RR task which creates a couple of RR tasks
 */
 void rr2(){
     add_to_trace(2);

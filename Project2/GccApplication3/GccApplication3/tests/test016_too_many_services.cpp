@@ -1,3 +1,9 @@
+/*
+Testing RR tasks subscribing to a periodic publisher.
+    Desired Trace:
+    T016;1;1;2;2;3;3;4;4;5;5;...;19;19;20;20;
+*/
+
 #ifdef USE_TEST_016
 
 #include <avr/io.h>
@@ -9,7 +15,6 @@
 #include "trace/trace.h"
 #include "../profiler.h"
 #include "../error_code.h"
-
 
 void p(){    
     for(;;){
