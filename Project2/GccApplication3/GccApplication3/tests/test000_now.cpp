@@ -2,7 +2,9 @@
 
 /*
     Desired Trace
-    T000;0;25;50;75;100;125;...;6420;
+    T000;0;25;50;76;100;125;...;6420;
+
+    Note that every 4th entry, it will drift by 1ms
 */
 
 #include <avr/io.h>

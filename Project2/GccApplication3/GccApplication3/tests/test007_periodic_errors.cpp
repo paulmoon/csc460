@@ -37,6 +37,8 @@ void p3() {
 extern int r_main(){    
     uart_init();
     set_trace_test(7);
+
+    //Select the task that you want to run
 	//uint8_t e = ERR_RUN_7_PERIODIC_TOOK_TOO_LONG;	
 	//uint8_t e = ERR_RUN_5_INVALID_WCET_AND_PERIOD;
 	//uint8_t e = ERR_RUN_6_INVALID_START_TIME;

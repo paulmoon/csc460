@@ -1,5 +1,12 @@
 #ifdef USE_TEST_001
 /*
+Create multiple system tasks, each of which will print out to the traces.
+
+r_main  0 0 
+system1     1   1
+system2       2   2  2
+system3                3
+
 Desired trace:
 T001;0;0;1;2;1;2;2;3;
 */

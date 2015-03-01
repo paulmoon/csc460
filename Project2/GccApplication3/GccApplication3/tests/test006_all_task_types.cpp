@@ -2,23 +2,23 @@
 
 /*
 Test all tasks types running together.
+
 Create a system task A
 Create two periodic tasks B and C
 Create two round-robin tasks D and E
-
 Task A will run first and create a new round robin task F, and then terminate.
+Task B is periodic and runs immediately.
+The spare time after Task B yields is used by the first RR task (D)
+Task D will run and then be pre-empted by task C.
+Task C will run and then yield the processor.
+The remaining RR tasks D,E,F will now run until the next prempt from a periodic task.
 
-A
-B
-C
-D
-E
-F
-G
-H
-
-
-
+A 1 1
+B     2          2          2
+C         3          3           3
+D       4          4          4            
+E           5          5           5
+F             6          6           6 ...
 
 Desired trace:
 T006;0;0;1;1;2;4;3;5;6;2;3;2;3;2;4;3;5;6;2;3;2;3;2;4;3;5;6;2;3;2;3;2;4;3;5;6;2;3;2;3;2;4;3;5...

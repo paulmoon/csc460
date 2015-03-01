@@ -53,7 +53,6 @@ static volatile int kernel_request_retval;
 static volatile SERVICE* kernel_request_service_ptr;
 static volatile int16_t kernel_request_service_data;
 
-
 /** Number of tasks created so far */
 static queue_t dead_pool_queue;
 
@@ -247,7 +246,7 @@ static void kernel_handle_request(void)
             RR      -> system   = give the processor up to the system task.
             RR      -> period   = we give the processor to the periodic task iff
                                 the period task wants to run RIGHT now.
-            RR      -> RR       = don't swithc process.
+            RR      -> RR       = don't switch process.
          */
         if(kernel_request_retval)
         {                 
@@ -274,14 +273,6 @@ static void kernel_handle_request(void)
                     will conflict and OS_Abort                    
                 */
                 enqueue(&periodic_queue,cur_task);
-                
-                /** 
-                    Wait I don't think this case can ever be reached
-                */
-                // if( periodic_queue.size >= 2) {
-                //     error_msg = ERR_RUN_9_PERIODIC_TASK_TIME_CONFLICT;
-                //     OS_Abort();
-                // }
             }
             else if(cur_task->level == PERIODIC && kernel_request_create_args.level == PERIODIC)
             {
@@ -306,9 +297,7 @@ static void kernel_handle_request(void)
             else if( cur_task->level == RR && kernel_request_create_args.level == SYSTEM)
             {
                 cur_task->state = READY;
-
                 queue_push(&rr_queue,cur_task);
-                //enqueue(&rr_queue, cur_task);
             }
             else if(cur_task->level == RR && kernel_request_create_args.level == PERIODIC)
             {
@@ -319,7 +308,6 @@ static void kernel_handle_request(void)
                     cur_task->state = READY;
                     
                     queue_push(&rr_queue,cur_task);
-                    //enqueue(&rr_queue, cur_task);
                 }                
             }            
 
@@ -366,7 +354,9 @@ static void kernel_handle_request(void)
         break;
 
     case SERVICE_INIT:
-        /* Copied directly from .... */        
+        /* Copied directly from
+            https://webhome.csc.uvic.ca/~mcheng/460/summer.2013/samples/krazanowski_a2.zip
+        */        
         kernel_service_init();        
         break;
 
@@ -602,7 +592,7 @@ static void enter_kernel(void)
  */
 void TIMER1_COMPA_vect(void)
 {
-	//PORTB ^= _BV(PB7);		// Arduino LED	
+	/*PORTB ^= _BV(PB7);		// Arduino LED	 */
     
     /*
      * Save the interrupted task's context on its stack,
@@ -955,7 +945,6 @@ static void kernel_service_publish(void)
         {
             cur_task->state = READY;
             queue_push(&rr_queue,cur_task);
-            //enqueue(&rr_queue,cur_task);
         }
         else if( cur_task->level == PERIODIC )
         {
@@ -1059,8 +1048,7 @@ static task_descriptor_t* dequeue(queue_t* queue_ptr)
  */
 static void kernel_update_ticker(void)
 {
-    /* PORTD ^= LED_D5_RED; */
-	//PORTB ^= _BV(PB7);    
+    /* PORTB ^= LED_D5_RED; */	
     ++ticks_since_boot;
 
     if (cur_task != NULL && 
@@ -1089,7 +1077,6 @@ static void kernel_update_ticker(void)
             periodic_tasks[i]->state = READY;
             enqueue(&periodic_queue,periodic_tasks[i]);
             
-
             /* restart the counters  for the periodic tasks */
             periodic_tasks[i]->counter = periodic_tasks[i]->period;
             periodic_tasks[i]->wcet_counter = periodic_tasks[i]->wcet;
@@ -1144,8 +1131,8 @@ void OS_Init()
     /* Set up the clocks */
 	TCCR1A = 0;
 	TCCR1B = (_BV(WGM32) | _BV(CS11));
-	//TCCR1B = 0;	
-    //TCCR1B |= (_BV(CS11));
+	/*TCCR1B = 0;	
+      TCCR1B |= (_BV(CS11));*/
 
 #ifdef SLOW_CLOCK
     kernel_slow_clock();
@@ -1460,11 +1447,7 @@ SERVICE *Service_Init(){
 /**
  * @brief. Current task subscribes to the service.
  * @param s the service to subscribe to.
- * @param v a pointer in which to place the published result.
- *
- * This will make two kernel context switches.
- * The first time is to block on the service until it publishes.
- * the second is to retrieve the data from the service publish. 
+ * @param v a pointer in which to place the published result. 
  */
 void Service_Subscribe( SERVICE *s, int16_t *v ){
     uint8_t sreg;    
@@ -1526,31 +1509,14 @@ uint16_t Now() {
     return ret_val; 
 };
 
-/* Pulled straight out of the arduino libary 
-    http://arduino.cc/en/reference/map
-
-static int16_t mapi(int16_t x, int16_t in_min, int16_t in_max, int16_t out_min, int16_t out_max)
-{
-    return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
-}
-*/
 
 /**
 * ticks_since_boot*TICK 
 *     obtain the number of milliseconds counted by the TIMER1 ISR.        
-* TCNT1 + (TICK_CYCLES/(TICK << 1)) 
-*     we want the number of CPU ticks counted by the internal timer, but we need to do some rounding.
-*     TICK_CYLCES/(TICK << 1) <==> (TICK_CYCLES/TICK)/2 
-*     this round the number by 0.5 milliseconds, and therefore allows us avoid
-*     case where we read a value of 4.999 ms but report 4.000 ms due to integer rounding.
-* (TCNT1 + (TICK_CYCLES/(TICK << 1))*10)/TICK_CYCLES
-*     We scale by 10 in order to avoid integer rounding when we divide by the TICK_CYCLES
-*     ( i.e 50/100 --> 0 ). The final result will be a value between 0 and 10.
-* mapi((TCNT1 + (TICK_CYCLES/(TICK << 1))*10)/TICK_CYCLES,0,10,0,TICK) <==>
-*   ((((TCNT1 + half_tick_cycle)*10)/TICK_CYCLES)*TICK)/TICK_CYCLES
-*     After doing the scale by 10 and division by TICK_CYCLES, we want to map the range
-*     0 to 10 to the range 0 and TICK in order to obtain the number of milliseconds we can count
-*     from the timer1 counter
+* TCNT1 - this uses the timer counter in order to resolve to a millisecond
+    timing resolution.
+* HALF_MS - we add half a ms of cycls in order to avoid rounding problems.
+    i.e current time is 4.9ms but we report back 4.0 ms due to integer rounding.
 */
 #define CYCLES_PER_MS TICK_CYCLES/TICK
 #define HALF_MS TICK_CYCLES/(TICK << 1)
