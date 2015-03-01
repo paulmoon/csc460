@@ -255,7 +255,7 @@ static void kernel_handle_request(void)
             if( cur_task->level == SYSTEM && kernel_request_create_args.level == PERIODIC)
             {
                 if( periodic_queue.size >= 2){ 
-                    error_msg = ERR_RUN_9_TWO_PERIODIC_TASKS_READY;                    
+                    error_msg = ERR_RUN_8_TWO_PERIODIC_TASKS_READY;                    
                     OS_Abort();
                 }                
             }
@@ -264,7 +264,7 @@ static void kernel_handle_request(void)
                 cur_task->state = READY;
 
                 if( periodic_queue.size >= 1) {
-                    error_msg = ERR_RUN_10_PERIODIC_TASK_TIME_CONFLICT;
+                    error_msg = ERR_RUN_9_PERIODIC_TASK_TIME_CONFLICT;
                     OS_Abort();
                 }
                 
@@ -280,7 +280,7 @@ static void kernel_handle_request(void)
                     Wait I don't think this case can ever be reached
                 */
                 // if( periodic_queue.size >= 2) {
-                //     error_msg = ERR_RUN_10_PERIODIC_TASK_TIME_CONFLICT;
+                //     error_msg = ERR_RUN_9_PERIODIC_TASK_TIME_CONFLICT;
                 //     OS_Abort();
                 // }
             }
@@ -290,7 +290,7 @@ static void kernel_handle_request(void)
                 /** trying to run a new periodic task while running already 
                     running a periodic task */
                 if( kernel_request_create_args.start == ticks_since_boot){
-                    error_msg = ERR_RUN_10_PERIODIC_TASK_TIME_CONFLICT;
+                    error_msg = ERR_RUN_9_PERIODIC_TASK_TIME_CONFLICT;
                     OS_Abort();
                 }
 
@@ -299,7 +299,7 @@ static void kernel_handle_request(void)
                     When will this case ever be triggered?? */
                 if(periodic_queue.size >= 2)                
                 {
-                    error_msg = ERR_RUN_9_TWO_PERIODIC_TASKS_READY;
+                    error_msg = ERR_RUN_8_TWO_PERIODIC_TASKS_READY;
                     OS_Abort();
                 }
 
@@ -325,7 +325,7 @@ static void kernel_handle_request(void)
             }
 
         }else{
-            error_msg = ERR_RUN_2_TOO_MANY_TASKS;
+            error_msg = ERR_RUN_4_TOO_MANY_TASKS;
             OS_Abort();
         }
         break;
@@ -382,7 +382,7 @@ static void kernel_handle_request(void)
 
     default:
         /* Should never happen */
-        error_msg = ERR_RUN_5_RTOS_INTERNAL_ERROR;        
+        error_msg = ERR_RUN_3_RTOS_INTERNAL_ERROR;        
         OS_Abort();
         break;
     }
@@ -699,15 +699,15 @@ static int kernel_create_task()
 
         if(kernel_request_create_args.wcet <= 0 ||
          kernel_request_create_args.period <= 0 ||
-         kernel_request_create_args.wcet >= kernel_request_create_args.period)
+         kernel_request_create_args.wcet > kernel_request_create_args.period)
         {
-            error_msg = ERR_RUN_6_INVALID_WCET_AND_PERIOD;
+            error_msg = ERR_RUN_5_INVALID_WCET_AND_PERIOD;
             OS_Abort();
         }
         
         if( kernel_request_create_args.start < ticks_since_boot ) {
             /** periodic task must start "some" time after the current boot time */
-            error_msg = ERR_RUN_7_INVALID_START_TIME;
+            error_msg = ERR_RUN_6_INVALID_START_TIME;
             OS_Abort();
         }
     }
@@ -791,7 +791,7 @@ static int kernel_create_task()
                 }
             }
             if( candidate_index == -1){
-                error_msg = ERR_RUN_8_NO_FREE_PERIODIC_BLOCK;
+                error_msg = ERR_RUN_10_NO_FREE_PERIODIC_BLOCK;
                 OS_Abort();
             }
             periodic_tasks[candidate_index] = p;
@@ -868,8 +868,8 @@ static void kernel_service_init(void)
     }
     else
     {
-        /* Should we error out instead of returning NULL? */
-        kernel_request_service_ptr = (SERVICE *)((uint16_t)0);
+        error_msg = ERR_RUN_11_TOO_MANY_SERVICES;
+        OS_Abort();        
     }
 }
 
@@ -884,7 +884,7 @@ static void kernel_service_subscribe(void)
 
     if( service_index < 0 || service_index >= num_services)
     {
-        error_msg = ERR_RUN_11_INVALID_SERVICE_DESCRIPTOR;
+        error_msg = ERR_RUN_13_INVALID_SERVICE_DESCRIPTOR;
         OS_Abort();
     }
     else if( cur_task->level == PERIODIC)
@@ -913,7 +913,7 @@ static void kernel_service_publish(void)
     uint8_t service_index = (uint8_t)((uint16_t)(kernel_request_service_ptr) - 1);
     if( service_index < 0 || service_index >= num_services)
     {
-        error_msg = ERR_RUN_11_INVALID_SERVICE_DESCRIPTOR;
+        error_msg = ERR_RUN_13_INVALID_SERVICE_DESCRIPTOR;
         OS_Abort();
     }
     
@@ -941,7 +941,7 @@ static void kernel_service_publish(void)
 
             case PERIODIC:
             default: 
-                error_msg = ERR_RUN_5_RTOS_INTERNAL_ERROR;
+                error_msg = ERR_RUN_3_RTOS_INTERNAL_ERROR;
                 OS_Abort();
                 /* Should never get here */
                 break;
@@ -965,7 +965,7 @@ static void kernel_service_publish(void)
 
             if( periodic_queue.size >= 2)
             {
-                error_msg = ERR_RUN_9_TWO_PERIODIC_TASKS_READY;
+                error_msg = ERR_RUN_8_TWO_PERIODIC_TASKS_READY;
                 OS_Abort();
             }
         }
@@ -1072,7 +1072,7 @@ static void kernel_update_ticker(void)
         cur_task->wcet_counter -= 1;
 
         if (cur_task->wcet_counter <= 0) {
-            error_msg = ERR_RUN_3_PERIODIC_TOOK_TOO_LONG;
+            error_msg = ERR_RUN_7_PERIODIC_TOOK_TOO_LONG;
             OS_Abort();
         }
     }    
@@ -1100,7 +1100,7 @@ static void kernel_update_ticker(void)
     // check to see if there are more than two tasks in the periodic ready queue 
     if( periodic_queue.size >= 2)
     {                        
-        error_msg = ERR_RUN_9_TWO_PERIODIC_TASKS_READY;
+        error_msg = ERR_RUN_8_TWO_PERIODIC_TASKS_READY;
         OS_Abort();
     }
 
@@ -1110,7 +1110,7 @@ static void kernel_update_ticker(void)
         cur_task->level == PERIODIC &&
         periodic_queue.size >= 1 )        
     {
-        error_msg = ERR_RUN_10_PERIODIC_TASK_TIME_CONFLICT;
+        error_msg = ERR_RUN_9_PERIODIC_TASK_TIME_CONFLICT;
         OS_Abort();   
     }
     
@@ -1556,11 +1556,17 @@ static int16_t mapi(int16_t x, int16_t in_min, int16_t in_max, int16_t out_min, 
 *   ((((TCNT1 + half_tick_cycle)*10)/TICK_CYCLES)*TICK)/TICK_CYCLES
 *     After doing the scale by 10 and division by TICK_CYCLES, we want to map the range
 *     0 to 10 to the range 0 and TICK in order to obtain the number of milliseconds we can count
-*     from the timer1 counter         
+*     from the timer1 counter
 */
+#define CYCLES_PER_MS TICK_CYCLES/TICK
+#define HALF_MS TICK_CYCLES/(TICK << 1)
 uint16_t _Now(){
-    static uint16_t half_tick_cycle = TICK_CYCLES/(TICK << 1);
-    return ticks_since_boot*TICK + ((((TCNT1 + half_tick_cycle)*10)/TICK_CYCLES)*TICK)/TICK_CYCLES;
+    //static uint16_t half_tick_cycle = TICK_CYCLES/(TICK << 1);
+    static uint16_t cycles_per_ms = TICK_CYCLES/TICK;
+    static uint16_t half_ms = TICK_CYCLES/(TICK << 1);
+    return ticks_since_boot*TICK + (TCNT1 + half_ms)/(cycles_per_ms);
+    //TCNT1 + 
+    //return ticks_since_boot*TICK + ((((TCNT1 + half_tick_cycle)*10)/TICK_CYCLES)*TICK)/TICK_CYCLES;
     //return ticks_since_boot*TICK + mapi( ((TCNT1 + half_tick_cycle)*10)/TICK_CYCLES,0,10,0,TICK);
 }
 

@@ -1,6 +1,25 @@
 #ifdef USE_TEST_006
 
 /*
+Test all tasks types running together.
+Create a system task A
+Create two periodic tasks B and C
+Create two round-robin tasks D and E
+
+Task A will run first and create a new round robin task F, and then terminate.
+
+A
+B
+C
+D
+E
+F
+G
+H
+
+
+
+
 Desired trace:
 T006;0;0;1;1;2;4;3;5;6;2;3;2;3;2;4;3;5;6;2;3;2;3;2;4;3;5;6;2;3;2;3;2;4;3;5;6;2;3;2;3;2;4;3;5...
 */
@@ -12,16 +31,15 @@ T006;0;0;1;1;2;4;3;5;6;2;3;2;3;2;4;3;5;6;2;3;2;3;2;4;3;5;6;2;3;2;3;2;4;3;5;6;2;3
 #include "os.h"
 #include "uart/uart.h"
 #include "trace/trace.h"
-#include "../profiler.h"
 
 
-int p_counter = 0;
 void dump_trace(){
     Task_Next();
     print_trace();
 }
 
-void poker(){
+int p_counter = 0;
+void p_task(){
     uint16_t v = Task_GetArg();
 
     p_counter += 1;
@@ -66,8 +84,8 @@ extern int r_main(){
     add_to_trace(0);
     
     Task_Create_System(s1,1);
-    Task_Create_Periodic(poker,2,5,2,0);
-    Task_Create_Periodic(poker,3,5,2,1);
+    Task_Create_Periodic(p_task,2,5,2,0);
+    Task_Create_Periodic(p_task,3,5,2,1);
     Task_Create_RR(r,4);
     Task_Create_RR(r,5);
 

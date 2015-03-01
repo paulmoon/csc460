@@ -4,6 +4,18 @@
 Testing RR tasks subscribing to a periodic publisher.
     Desired Trace:
     T016;1;1;2;2;3;3;4;4;5;5;...;19;19;20;20;
+
+Task A and B are RR subscribers
+Task C is a periodic publisher.
+
+p(n) for publish with value n
+b block on a subscribe
+n value received from a pubslish.
+
+A b        1    b        2     b
+B   b        1    b         2    b
+C     p(1)          p(2)           p(3) ...
+
 */
 #include <avr/io.h>
 #include <avr/interrupt.h>

@@ -1,6 +1,12 @@
 #ifdef USE_TEST_003
 
 /*
+
+Create a single periodic task.
+The task will run for 5 iterations each time printing out the current time.
+Once all iterations are complete it will print out the full trace and
+terminate the task.
+
 Desired trace:
 T003:0;0;25;75;125;175;225;
     given that ticks are 5ms interval    
@@ -27,8 +33,7 @@ void p(){
         add_to_trace(Now());
         Task_Next();
     }
-
-    //print_trace();
+    
     Task_Create_RR(dump_trace,0);
     Task_Terminate();
 }

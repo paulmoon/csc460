@@ -2,7 +2,7 @@
 
 /*
     Desired Trace
-    T001;0;25;50;75;100;125;...;
+    T001;0;25;50;75;100;125;...;6420;
 */
 
 #include <avr/io.h>
@@ -23,6 +23,7 @@ extern int r_main(){
         v = Now();
         add_to_trace(v);
         _delay_ms(25);
+    
     }	
     print_trace();	
     return 0;

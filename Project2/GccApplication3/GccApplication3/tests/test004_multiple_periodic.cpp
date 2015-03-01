@@ -1,6 +1,14 @@
 #ifdef USE_TEST_004
 
 /*
+Create two periodic tasks call them A and B.
+Task A runs every 10 ticks with a start of 4
+Task B runs every 5 ticks with a start of 2
+Therefore the schedule we should see is
+    Task A:   4      14        24        34
+    Task B: 2   7 12    17  22    27  32
+
+
 Desired trace:
 T004:0;0;2;1;2;2;1;2;2;1;2;2;1;2;2;1;2
     given that ticks are 5ms interval    

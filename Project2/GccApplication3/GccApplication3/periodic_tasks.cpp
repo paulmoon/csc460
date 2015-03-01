@@ -72,7 +72,7 @@ void periodic_update_ticker(task_descriptor_t* cur_task){
         cur_task->wcet_counter -= 1;
         if (cur_task->wcet_counter <= 0)
         {
-            //error_msg = ERR_RUN_3_PERIODIC_TOOK_TOO_LONG;
+            //error_msg = ERR_RUN_7_PERIODIC_TOOK_TOO_LONG;
             //OS_Abort();
         }
     }

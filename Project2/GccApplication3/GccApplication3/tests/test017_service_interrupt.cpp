@@ -3,6 +3,12 @@
 /*
     Desired Trace:    
     T017;10;0;20;0;10;1;20;1;10;2;20;2;10;0;20;0;10;1;20;1;10;2;20;2;...;30;
+
+    Create an interrupt which alternates between publishing to 
+      service 0, 1 and 2
+    Create two system tasks which both loops through subscribing to services
+      0,1 ,and 2.      
+
 */
 #include <avr/io.h>
 #include <avr/interrupt.h>
@@ -40,10 +46,9 @@ void setup() {
 int16_t volatile service_index = 0;
 ISR(TIMER3_COMPA_vect)
 {
-  Profile1();
   Service_Publish(services[service_index],service_index);
   service_index  = (service_index + 1)%3;
-  Profile2();
+
 }
 
 int counter = 0;
@@ -56,6 +61,9 @@ void s()
     {
         Service_Subscribe(services[service_index],&v);
         service_index = (service_index + 1)%3;
+
+        /* add this systems identifier to the trace, and then print out the 
+          published value */
         add_to_trace(arg);
         add_to_trace(v);        
         if(counter >= 20)
