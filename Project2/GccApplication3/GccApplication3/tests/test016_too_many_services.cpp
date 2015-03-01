@@ -6,6 +6,10 @@ Testing RR tasks subscribing to a periodic publisher.
 
 #ifdef USE_TEST_016
 
+/*
+	Test to see that the OS aborts if you try to create
+	too many services.
+*/
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include <util/delay.h>
@@ -16,7 +20,7 @@ Testing RR tasks subscribing to a periodic publisher.
 #include "../profiler.h"
 #include "../error_code.h"
 
-void p(){    
+void s(){    
     for(;;){
         SERVICE* s = Service_Init();
         Task_Next();
@@ -26,8 +30,8 @@ void p(){
 
 extern int r_main(){    
     uart_init();
-
-    Task_Create_Periodic(p,10,5,2,0);
+		
+    Task_Create_System(s,0);
     Task_Terminate();
     return 0;
 }

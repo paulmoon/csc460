@@ -10,6 +10,10 @@
 #include "../profiler.h"
 #include "../error_code.h"
 
+/*
+	Test that we error out when trying to create too many tasks.
+	We perform the test
+*/
 
 void r(){    
 	Task_Create_RR(r,0);
@@ -36,9 +40,9 @@ void p(){
 extern int r_main(){    
     uart_init();
 
-    //Task_Create_RR(r,0);
+    Task_Create_RR(r,0);
     //Task_Create_System(s,0);
-    Task_Create_Periodic(p,1,100,5,0);
+    //Task_Create_Periodic(p,1,100,5,0);
    
     Task_Terminate();
     return 0;

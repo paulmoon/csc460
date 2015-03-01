@@ -19,6 +19,11 @@ A system task will subscribe to a periodic task which publishes values from 0 to
 
 SERVICE* services[1];
 
+void dump_trace()
+{
+    print_trace();
+}
+
 void p() {
     int16_t count = 0;
 
@@ -26,6 +31,8 @@ void p() {
         Service_Publish(services[0], count++);
         Task_Next();
     }
+
+	Task_Create_RR(dump_trace,0);
 }
 
 void s() {
@@ -33,11 +40,6 @@ void s() {
     for (;;) {
         Service_Subscribe(services[0], &v);
         add_to_trace(v);
-
-        if (v >= 20) {
-            print_trace();
-            Task_Terminate();
-        }
     }
 }
 

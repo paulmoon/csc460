@@ -1,4 +1,4 @@
-/*
+    /*
 Test that publishing or subscribing to an invalid service throws an
 ERR_RUN_11_INVALID_SERVICE_DESCRIPTOR error.
 
@@ -25,7 +25,7 @@ void p() {
     for(;;) {
         // Using an invalid Service descriptor
         Service_Publish(services[1], 50);
-        // This should fail as well, if the publish line is commented
+        // This should fail as well, if the publish code is commented out
         // Service_Subscribe(services[1], &v);
         Task_Next();
     }
@@ -35,7 +35,7 @@ extern int r_main() {
     uart_init();
     set_trace_test(19);
 
-    // Only the first one is initialized
+    // Only the first Service is initialized in the services array
     services[0] = Service_Init();
     Task_Create_Periodic(p,10,5,2,0);
     Task_Terminate();

@@ -73,8 +73,7 @@ typedef enum
 	
 	SERVICE_INIT,
 	SERVICE_SUBSCRIBE,
-	SERVICE_PUBLISH,
-    SERVICE_GETDATA
+	SERVICE_PUBLISH
 }
 kernel_request_t;
 
@@ -135,15 +134,31 @@ struct td_struct
 };
 
 
+typedef struct periodic_block_t_ periodic_block_t;
+struct periodic_block_t_
+{
+	task_descriptor_t*      task;
+	uint16_t                time_remaining;
+	periodic_block_t*       next;
+};
+
 /**
  * @brief Contains pointers to head and tail of a linked list.
  */
 typedef struct
 {
     /** The first item in the queue. NULL if the queue is empty. */
-    task_descriptor_t*  head;
-    /** The last item in the queue. Undefined if the queue is empty. */
-    task_descriptor_t*  tail;
+    union{
+        task_descriptor_t*  head;
+        periodic_block_t*   periodic_head;
+    };
+
+    union {
+        /** The last item in the queue. Undefined if the queue is empty. */
+        task_descriptor_t*  tail;
+        periodic_block_t*   periodic_tail;
+    };
+    
     /** keep track of the size of the queue */
     uint16_t            size;
 }

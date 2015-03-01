@@ -173,6 +173,12 @@
     <Compile Include="os.h">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="periodic_tasks.cpp">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="periodic_tasks.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="profiler.h">
       <SubType>compile</SubType>
     </Compile>
@@ -203,7 +209,7 @@
     <Compile Include="tests\test008_create_too_many_tasks.cpp">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="tests\test009_create_service.cpp">
+    <Compile Include="tests\test009_service_init.cpp">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="tests\test010_service_system.cpp">
@@ -218,13 +224,19 @@
     <Compile Include="tests\test013_service_all.cpp">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="tests\test014_too_many_services.cpp">
+    <Compile Include="tests\test014_service_RR_subscribe.cpp">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="tests\test015_periodic_cant_subscribe.cpp">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="tests\test016_service_RR_subscribe.cpp">
+    <Compile Include="tests\test016_too_many_services.cpp">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="tests\test017_service_interrupt.cpp">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="tests\test018_latest_publish.cpp">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="trace\trace.cpp">

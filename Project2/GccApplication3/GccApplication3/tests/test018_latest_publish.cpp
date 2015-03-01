@@ -1,9 +1,12 @@
-#ifdef USE_TEST_012
+#ifdef USE_TEST_018
 
 /*
-Testing RR tasks subscribing to another RR publisher.
+
     Desired Trace:
-    T012;0;0;1;1;2;2;3;3;4;4;5;5;6;6;7;7;8;8;9;9;
+    T012;1;1;3;3;5;5;7;7;9;9;11;11;13;13;15;15;17;17;19;19;
+	
+	Testing that multiple publishes the same service,
+	the subscribers will only receive the latest published value.	
 */
 #include <avr/io.h>
 #include <avr/interrupt.h>
@@ -21,7 +24,7 @@ int g_count = 0;
 void r(){
     int16_t v;
     while( g_count < 20){
-        Service_Subscribe(services[0], &v);
+        Service_Subscribe(services[0],&v);
         add_to_trace(v);
         g_count += 1;
     }
@@ -30,6 +33,7 @@ void r(){
 void r2(){
     int16_t count = 0;
     for(;;){
+        Service_Publish(services[0],count++);
         Service_Publish(services[0],count++);
         Task_Next();
         if( g_count >= 20){
@@ -40,7 +44,7 @@ void r2(){
 
 extern int r_main(){    
     uart_init();
-    set_trace_test(12);
+    set_trace_test(18);
 
     services[0] = Service_Init();    
     
