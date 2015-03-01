@@ -250,8 +250,7 @@ static void kernel_handle_request(void)
             RR      -> RR       = don't swithc process.
          */
         if(kernel_request_retval)
-        {
-
+        {                 
             if( cur_task->level == SYSTEM && kernel_request_create_args.level == PERIODIC)
             {
                 if( periodic_queue.size >= 2){ 
@@ -260,7 +259,7 @@ static void kernel_handle_request(void)
                 }                
             }
             else if( cur_task->level == PERIODIC  && kernel_request_create_args.level == SYSTEM)
-            {
+            {                
                 cur_task->state = READY;
 
                 if( periodic_queue.size >= 1) {
@@ -275,7 +274,7 @@ static void kernel_handle_request(void)
                     will conflict and OS_Abort                    
                 */
                 enqueue(&periodic_queue,cur_task);
-
+                
                 /** 
                     Wait I don't think this case can ever be reached
                 */
@@ -321,8 +320,8 @@ static void kernel_handle_request(void)
                     
                     queue_push(&rr_queue,cur_task);
                     //enqueue(&rr_queue, cur_task);
-                }
-            }
+                }                
+            }            
 
         }else{
             error_msg = ERR_RUN_4_TOO_MANY_TASKS;
@@ -367,7 +366,7 @@ static void kernel_handle_request(void)
         break;
 
     case SERVICE_INIT:
-        /* Copied directly from .... */
+        /* Copied directly from .... */        
         kernel_service_init();        
         break;
 
@@ -540,7 +539,7 @@ static void exit_kernel(void)
      *
      * The last piece of the context, the PC, is popped off the stack
      * with the ret instruction.
-     */
+     */     
     asm volatile ("ret\n"::);
 }
 
@@ -559,7 +558,7 @@ static void enter_kernel(void)
     /*
      * The PC was pushed on the stack with the call to this function.
      * Now push on the I/O registers and the SREG as well.
-     */
+     */     
     SAVE_CTX();
 
     /*
@@ -582,7 +581,7 @@ static void enter_kernel(void)
      *
      * The last piece of the context, the PC, is popped off the stack
      * with the ret instruction.
-     */
+     */     
     asm volatile ("ret\n"::);
 }
 
@@ -1061,7 +1060,7 @@ static task_descriptor_t* dequeue(queue_t* queue_ptr)
 static void kernel_update_ticker(void)
 {
     /* PORTD ^= LED_D5_RED; */
-	//PORTB ^= _BV(PB7);
+	//PORTB ^= _BV(PB7);    
     ++ticks_since_boot;
 
     if (cur_task != NULL && 
@@ -1112,8 +1111,7 @@ static void kernel_update_ticker(void)
     {
         error_msg = ERR_RUN_9_PERIODIC_TASK_TIME_CONFLICT;
         OS_Abort();   
-    }
-    
+    }    
 }
 		
 
@@ -1140,7 +1138,7 @@ static void kernel_slow_clock(void)
  * Point of entry from the C runtime crt0.S.
  */
 void OS_Init()
-{
+{    
     int i;
 
     /* Set up the clocks */
@@ -1205,7 +1203,7 @@ void OS_Init()
 
     /*
      * The main loop of the RTOS kernel.
-     */
+     */     
     kernel_main_loop();
 }
 
@@ -1442,7 +1440,7 @@ int Task_GetArg(void)
 
 /**
  * @brief Create a new service descdriptor. 
- */
+ */ 
 SERVICE *Service_Init(){
     SERVICE* service_ptr;
     uint8_t sreg;
@@ -1478,11 +1476,7 @@ void Service_Subscribe( SERVICE *s, int16_t *v ){
     kernel_request_service_data = (int16_t)0;
     kernel_request = SERVICE_SUBSCRIBE;
     
-    //add_to_trace((uint16_t)s);
-    //add_to_trace((uint16_t)cur_task);	
-
     enter_kernel();
-
     *v = services[((uint16_t)(s)-1)].data;
 
     SREG = sreg;
@@ -1560,14 +1554,8 @@ static int16_t mapi(int16_t x, int16_t in_min, int16_t in_max, int16_t out_min, 
 */
 #define CYCLES_PER_MS TICK_CYCLES/TICK
 #define HALF_MS TICK_CYCLES/(TICK << 1)
-uint16_t _Now(){
-    //static uint16_t half_tick_cycle = TICK_CYCLES/(TICK << 1);
-    static uint16_t cycles_per_ms = TICK_CYCLES/TICK;
-    static uint16_t half_ms = TICK_CYCLES/(TICK << 1);
-    return ticks_since_boot*TICK + (TCNT1 + half_ms)/(cycles_per_ms);
-    //TCNT1 + 
-    //return ticks_since_boot*TICK + ((((TCNT1 + half_tick_cycle)*10)/TICK_CYCLES)*TICK)/TICK_CYCLES;
-    //return ticks_since_boot*TICK + mapi( ((TCNT1 + half_tick_cycle)*10)/TICK_CYCLES,0,10,0,TICK);
+uint16_t _Now(){    
+    return ticks_since_boot*TICK + (TCNT1 + HALF_MS)/(CYCLES_PER_MS);    
 }
 
 
@@ -1580,7 +1568,7 @@ int main()
 	InitializeLogicAnalyzerProfiler();
 	DisableProfileSample1();
 	DisableProfileSample2();
-	DisableProfileSample3();    
+	DisableProfileSample3();
     // EnableProfileSample1();
     // EnableProfileSample2();
     // EnableProfileSample3();

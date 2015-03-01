@@ -38,25 +38,73 @@ void s()
     Task_Terminate();
 }
 
+void p()
+{
+    for(;;)    {
+        Task_Next();
+    }
+}
+
+
+SERVICE* services[1];
+void r2(){
+	int16_t v;
+	for(;;){
+		Service_Subscribe(services[0],&v);		
+	}
+}
+
+void p2(){		
+	for(;;){
+		Service_Publish(services[0],0);
+		Task_Next();		
+	}
+}
+
+void p3(){
+	Task_Create_System(s,0);
+	Task_Terminate();
+}
+
+void r3()
+{
+	Task_Create_Periodic(p,0,10,1,0);	
+}
+
 extern int r_main(){
     uart_init();
 
-    int i = 0;
+    /*int i = 0;
     for(i =0 ;i < 7; ++i )
-    {
-        EnableProfileSample1();
-        Task_Create_System(s,0);
-        DisableProfileSample1();
+    {        
+        //Task_Create_System(s,0);
 
         // EnableProfileSample1();
         // Task_Create_RR(s,0);
         // DisableProfileSample1();
 
         // EnableProfileSample1();
-        // Task_Create_Periodic(s,0,10,5,0);
+        //Task_Create_Periodic(s,0,10,5,i);
         // DisableProfileSample1();
-    }
-
+    }*/
+	
+	/*services[0] = Service_Init();
+	
+	Task_Create_Periodic(p2,0,10,1,10);
+	int i= 0;
+	for(i= 0;i < 5; ++i){
+		Task_Create_RR(r2,0);
+	}
+	*/
+	/*for(;;){
+		Now();
+		_delay_ms(8);		
+	}
+	*/
+	
+	//Task_Create_Periodic(p3,0,10,1,0);	
+	Task_Create_RR(r3,0);
+		
 	return 0;
 }
 #endif
