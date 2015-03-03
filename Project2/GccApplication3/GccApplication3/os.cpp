@@ -109,7 +109,6 @@ static task_descriptor_t* dequeue(queue_t* queue_ptr);
 static void kernel_update_ticker(void);
 static void idle (void);
 static void _delay_25ms(void);
-static uint16_t _Now(void);
 
 /*
  * FUNCTIONS
@@ -1504,64 +1503,39 @@ void Service_Publish( SERVICE *s, int16_t v ){
     SREG = sreg;
 }
 
-
-
 /**
-	Now() has a resolution of milliseconds. 
-	It will be able to accurately report up to 65536*TICK ms of time.
-	Therefore given that we have a TICK resolution of 5ms, this function will be able
-	to be used for timing tasks within the range of 0 to 327000ms.
-*/
-uint16_t Now() {	
-    uint16_t ret_val;
-    uint8_t sreg;
-
-    sreg = SREG;
-    Disable_Interrupt();
-
-    ret_val = _Now();
-
-    SREG = sreg;
-	
-    return ret_val; 
-};
-
-/* Pulled straight out of the arduino libary 
-    http://arduino.cc/en/reference/map
-
-static int16_t mapi(int16_t x, int16_t in_min, int16_t in_max, int16_t out_min, int16_t out_max)
-{
-    return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
-}
-*/
-
-/**
-* ticks_since_boot*TICK 
-*     obtain the number of milliseconds counted by the TIMER1 ISR.        
-* TCNT1 + (TICK_CYCLES/(TICK << 1)) 
+* Now() has a resolution of milliseconds. 
+* It will be able to accurately report up to 65536 * TICK ms of time.
+* Therefore given that we have a TICK resolution of 5 ms, this function will be able
+* to be used for timing tasks within the range of 0 to 327000 ms.
+*
+* ticks_since_boot*TICK
+*     obtain the number of milliseconds counted by the TIMER1 ISR.
+* TCNT1 + (TICK_CYCLES/(TICK << 1))
 *     we want the number of CPU ticks counted by the internal timer, but we need to do some rounding.
-*     TICK_CYLCES/(TICK << 1) <==> (TICK_CYCLES/TICK)/2 
+*     TICK_CYLCES/(TICK << 1) <==> (TICK_CYCLES/TICK)/2
 *     this round the number by 0.5 milliseconds, and therefore allows us avoid
 *     case where we read a value of 4.999 ms but report 4.000 ms due to integer rounding.
 * (TCNT1 + (TICK_CYCLES/(TICK << 1))*10)/TICK_CYCLES
 *     We scale by 10 in order to avoid integer rounding when we divide by the TICK_CYCLES
 *     ( i.e 50/100 --> 0 ). The final result will be a value between 0 and 10.
-* mapi((TCNT1 + (TICK_CYCLES/(TICK << 1))*10)/TICK_CYCLES,0,10,0,TICK) <==>
-*   ((((TCNT1 + half_tick_cycle)*10)/TICK_CYCLES)*TICK)/TICK_CYCLES
-*     After doing the scale by 10 and division by TICK_CYCLES, we want to map the range
-*     0 to 10 to the range 0 and TICK in order to obtain the number of milliseconds we can count
-*     from the timer1 counter
 */
 #define CYCLES_PER_MS TICK_CYCLES/TICK
-#define HALF_MS TICK_CYCLES/(TICK << 1)
-uint16_t _Now(){    
-    return ticks_since_boot*TICK + (TCNT1 + HALF_MS)/(CYCLES_PER_MS);    
-}
+#define HALF_MS TICK_CYCLES / (TICK << 1)
+uint16_t Now() {	
+    uint16_t ret_val;
+    uint8_t sreg;
+    sreg = SREG;
+    Disable_Interrupt();
 
+    ret_val = ticks_since_boot*TICK + (TCNT1 + HALF_MS) / (CYCLES_PER_MS);
 
+    SREG = sreg;
+    return ret_val; 
+};
 
 /**
- * Runtime entry point into the program; just start the RTOS.  The application layer must define r_main() for its entry point.
+* Runtime entry point into the program; just start the RTOS.  The application layer must define r_main() for its entry point.
 */
 int main()
 {	
@@ -1569,11 +1543,7 @@ int main()
 	DisableProfileSample1();
 	DisableProfileSample2();
 	DisableProfileSample3();
-    // EnableProfileSample1();
-    // EnableProfileSample2();
-    // EnableProfileSample3();
 	
 	OS_Init();
 	return 0;
 }
-
