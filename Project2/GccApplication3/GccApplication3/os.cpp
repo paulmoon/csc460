@@ -108,7 +108,6 @@ static task_descriptor_t* dequeue(queue_t* queue_ptr);
 static void kernel_update_ticker(void);
 static void idle (void);
 static void _delay_25ms(void);
-static uint16_t _Now(void);
 
 /*
  * FUNCTIONS
@@ -1487,22 +1486,21 @@ void Service_Publish( SERVICE *s, int16_t v ){
     SREG = sreg;
 }
 
-
-
 /**
 	Now() has a resolution of milliseconds.
 	It will be able to accurately report up to 65536*TICK ms of time.
 	Therefore given that we have a TICK resolution of 5ms, this function will be able
 	to be used for timing tasks within the range of 0 to 327000ms.
 */
+#define CYCLES_PER_MS TICK_CYCLES/TICK
+#define HALF_MS TICK_CYCLES / (TICK << 1)
 uint16_t Now() {
     uint16_t ret_val;
     uint8_t sreg;
-
     sreg = SREG;
     Disable_Interrupt();
 
-    ret_val = _Now();
+    ret_val = ticks_since_boot*TICK + (TCNT1 + HALF_MS) / (CYCLES_PER_MS);
 
     SREG = sreg;
 
@@ -1511,23 +1509,8 @@ uint16_t Now() {
 
 
 /**
-* ticks_since_boot*TICK
-*     obtain the number of milliseconds counted by the TIMER1 ISR.
-* TCNT1 - this uses the timer counter in order to resolve to a millisecond
-    timing resolution.
-* HALF_MS - we add half a ms of cycls in order to avoid rounding problems.
-    i.e current time is 4.9ms but we report back 4.0 ms due to integer rounding.
-*/
-#define CYCLES_PER_MS TICK_CYCLES/TICK
-#define HALF_MS TICK_CYCLES/(TICK << 1)
-uint16_t _Now(){
-    return ticks_since_boot*TICK + (TCNT1 + HALF_MS)/(CYCLES_PER_MS);
-}
-
-
-
-/**
- * Runtime entry point into the program; just start the RTOS.  The application layer must define r_main() for its entry point.
+* Runtime entry point into the program; just start the RTOS.  The application layer must define r_main() for its entry point.
+>>>>>>> 32b80f068e9f146fbce6e6af4132abbf892adf1d
 */
 int main()
 {
@@ -1535,11 +1518,7 @@ int main()
 	DisableProfileSample1();
 	DisableProfileSample2();
 	DisableProfileSample3();
-    // EnableProfileSample1();
-    // EnableProfileSample2();
-    // EnableProfileSample3();
 
 	OS_Init();
 	return 0;
 }
-
