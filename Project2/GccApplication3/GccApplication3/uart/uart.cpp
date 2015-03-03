@@ -14,7 +14,6 @@ static volatile char uart_rx;
 void uart_putchar (char c)
 {	
 	asm volatile ("cli"::);
-	//cli();
 	while ( !( UCSR0A & (1<<UDRE0)) ); // Wait for empty transmit buffer           
 	UDR0 = c;  // Putting data into the buffer, forces transmission
 	asm volatile ("sei"::);

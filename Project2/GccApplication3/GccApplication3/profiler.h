@@ -1,12 +1,10 @@
 #ifndef _PROFILER_H_
 #define _PROFILER_H_
 
-#include "trace/trace.h"
 #define PROFILECODE 1
 
 /* ATMega2560 
-PC0 -> Pc7
-digial pin 37 -> 30
+PC0 -> PC7 maps to digital pins 37 -> 30
 */
 #define PROFILE_DATADIRECTIONREGISTER   DDRC
 #define PROFILE_OUTPORT                 PORTC

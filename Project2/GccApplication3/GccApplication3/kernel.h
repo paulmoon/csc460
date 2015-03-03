@@ -38,7 +38,7 @@ extern "C" {
 //#define LED_RED_MASK    (uint8_t)(_BV(7) | _BV(7))
 #define LED_RED_MASK    (uint8_t)(_BV(PB7) | _BV(PB7))
 
-/** LEDs for OS_Abort() (Pin53)*/
+/** LEDs for OS_Abort() (Pin12)*/
 //#define LED_GREEN_MASK    (uint8_t)(_BV(5) | _BV(6))
 #define LED_GREEN_MASK    (uint8_t)(_BV(PB0) | _BV(PB0))
 
@@ -70,7 +70,7 @@ typedef enum
     TASK_TERMINATE,
     TASK_NEXT,
     TASK_GET_ARG,
-	
+
 	SERVICE_INIT,
 	SERVICE_SUBSCRIBE,
 	SERVICE_PUBLISH
@@ -115,18 +115,18 @@ struct td_struct
     int                             arg;
     /** The priority (type) of this task. */
     uint8_t                         level;
-	
+
 	/**	Period of the task in # of ticks */
 	uint16_t						period;
-	/** # of ticks after Task_Create_Periodic() after which the task should run */	
+	/** # of ticks after Task_Create_Periodic() after which the task should run */
 	uint16_t						start;
     /** # of ticks for Worse-Case Execution Time */
     uint16_t                        wcet;
 
 	/** Counter for # of remaining ticks until ready state */
-	uint16_t						counter;	
-    /** Counter for # of remaining ticks until ready state */
-    uint16_t                        wcet_counter;	
+	uint16_t						counter;
+    /** Counter for # of remaining ticks before the OS_aborts  */
+    uint16_t                        wcet_counter;
 
 
     /** A link to the next task descriptor in the queue holding this task. */
@@ -158,7 +158,7 @@ typedef struct
         task_descriptor_t*  tail;
         periodic_block_t*   periodic_tail;
     };
-    
+
     /** keep track of the size of the queue */
     uint16_t            size;
 }
@@ -172,7 +172,7 @@ struct service
 {
     /* the queue of tasks currently waiting on this service*/
     queue_t     queue;
-    
+
     /* the value which was last published */
     int16_t    data;
 };

@@ -3,10 +3,10 @@
  *
  * @brief   Testing module for creating traces.
  *          Used for testing an RTOS
- *          
+ *
  *          NOTE: Traces are stored in string like this
  *
- *          T001;1;2;3;1235 
+ *          T001;1;2;3;1235
  *
  * CSC 460/560 Real Time Operating Systems - Mantis Cheng
  * @author Scott Craig

@@ -7,8 +7,7 @@
 /** modifications
 	- moved the volatile uint8_t uart_rx variable from the h file to the c file
 	- renamed to cpp file
-	- changed the cli() and sei() functoins to Disable_interrupts() and Enable_Interrupts()
-	- included the "commons.h" filed
+	- changed the cli() and sei() functions to Disable_interrupts() and Enable_Interrupts()	
 	- removed UART_BPS code and hard-coded it to be 9600 baud
 */
 

@@ -173,12 +173,6 @@
     <Compile Include="os.h">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="periodic_tasks.cpp">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="periodic_tasks.h">
-      <SubType>compile</SubType>
-    </Compile>
     <Compile Include="profiler.h">
       <SubType>compile</SubType>
     </Compile>
