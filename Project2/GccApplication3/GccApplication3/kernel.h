@@ -133,31 +133,16 @@ struct td_struct
     task_descriptor_t*              next;
 };
 
-
-typedef struct periodic_block_t_ periodic_block_t;
-struct periodic_block_t_
-{
-	task_descriptor_t*      task;
-	uint16_t                time_remaining;
-	periodic_block_t*       next;
-};
-
 /**
  * @brief Contains pointers to head and tail of a linked list.
  */
 typedef struct
 {
     /** The first item in the queue. NULL if the queue is empty. */
-    union{
-        task_descriptor_t*  head;
-        periodic_block_t*   periodic_head;
-    };
+    task_descriptor_t*  head;
 
-    union {
-        /** The last item in the queue. Undefined if the queue is empty. */
-        task_descriptor_t*  tail;
-        periodic_block_t*   periodic_tail;
-    };
+    /** The last item in the queue. Undefined if the queue is empty. */
+    task_descriptor_t*  tail;
 
     /** keep track of the size of the queue */
     uint16_t            size;

@@ -8,7 +8,7 @@
 #include "trace/trace.h"
 #include "profiler.h"
 
-#define USE_MAIN
+#define USE_TEST_000
 #include "tests/test000_now.cpp"
 #include "tests/test001_create_system_task.cpp"
 #include "tests/test002_create_rr_task.cpp"
