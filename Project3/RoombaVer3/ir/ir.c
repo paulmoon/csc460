@@ -30,13 +30,31 @@ volatile uint8_t outputByte = 0;
 //Input on pin 3 (PE5/INT5)
 void IR_init() {
 
+	DDRL |= (1 << PL3)  | ( 1 << PL5);
+	TCCR5A = 0;
+	TCCR5B = 0;
+
+	TIMSK5 &= ~(1 << OCIE5C);
+
+	// fast pwm
+	TCCR5A |= (1<<WGM50) | (1<<WGM51);
+	TCCR5B |= (1<<WGM52) | (1<<WGM53);
+
+	// output to pin 44, for output C
+	TCCR5A |= (1 << COM5C1);
+
+	// no prescaler
+	TCCR5B |= (1 << CS50);
+
+	OCR5A = 421; // 38 Khz
+	OCR5C = 210; // 50 % duty
+
+
 	//PWM Timer 2
 	DDRB |= (1<<PB4);
-
 	// clear the control registers
 	TCCR2A = 0;
 	TCCR2B = 0;
-
 	//Set to Fast PWM mode 15
 	TCCR2A |= (1<<WGM20) | (1<<WGM21);
 	TCCR2B |= (1<<WGM22);
@@ -45,8 +63,8 @@ void IR_init() {
 	OCR2A = 421; // 38khz
 	OCR2B = 210; // 50% duty cycle
 
-	//Interrupt Timer 1.
-	//clear the control registers
+	// Interrupt Timer 3.
+	// clear the control registers
 	TCCR3A = 0;
 	TCCR3B = 0;
 	//Leave on normal mode.
@@ -67,44 +85,43 @@ void IR_init() {
 
 
 //Receiving a signal.
-ISR(INT5_vect) {
-	if(!is_receiving) {
-		//Start a new byte, start the timers.
-		is_receiving = 1;
-		currentBit = 0;
-		currentByte = 0;
+// ISR(INT5_vect) {
+// 	if(!is_receiving) {
+// 		//Start a new byte, start the timers.
+// 		is_receiving = 1;
+// 		currentBit = 0;
+// 		currentByte = 0;
 
-		//Clear any existing timer interrupts.
-		TIFR3 |= (1<<OCF3A);
+// 		//Clear any existing timer interrupts.
+// 		TIFR3 |= (1<<OCF3A);
 
-		//Delay by 1.5 bit lengths.
-		OCR3A = TCNT3 + 12000;
-		TIMSK3 |= (1<<OCIE3A);
-	}
-}
+// 		//Delay by 1.5 bit lengths.
+// 		OCR3A = TCNT3 + 12000;
+// 		TIMSK3 |= (1<<OCIE3A);
+// 	}
+// }
 
-//Read a new arriving signal.
-ISR(TIMER3_COMPA_vect) {
-	if(is_receiving) {
-		if(PINE & (1<<PE4)) {
-			currentByte |= (1<<currentBit);
-		}
+// //Read a new arriving signal.
+// ISR(TIMER3_COMPA_vect) {
+// 	if(is_receiving) {
+// 		if(PINE & (1<<PE4)) {
+// 			currentByte |= (1<<currentBit);
+// 		}
 
-		++currentBit;
-		OCR3A += 8000;
+// 		++currentBit;
+// 		OCR3A += 8000;
 
-		if(currentBit >= 8) {
-			is_receiving = 0;
-			TIMSK3 &= ~(1<<OCIE3A);
+// 		if(currentBit >= 8) {
+// 			is_receiving = 0;
+// 			TIMSK3 &= ~(1<<OCIE3A);
 
-			TIFR3 |= (1<<OCF3A);
-			EIFR |= (1<<INTF4);
-		}
-	}else if (is_transmitting) {
+// 			TIFR3 |= (1<<OCF3A);
+// 			EIFR |= (1<<INTF4);
+// 		}
+// 	}else if (is_transmitting) {
 
-	}
-
-}
+// 	}
+// }
 
 void enable_interupt() {
 	//Clears existing interrupts.
@@ -122,18 +139,22 @@ void disable_interupt() {
 }
 
 void mark() {
-	TCCR2A |= (1<<COM2A1);;
+	// TCCR2A |= (1<<COM2A1);;
+	TCCR5A |= (1<<COM5C1);
 //	PORTC |= (1 << PC2);
 	_delay_us(500);
 }
 void space() {
-	TCCR2A &= ~(1 << COM2A1);
+	// TCCR2A &= ~(1 << COM2A1);
+	TCCR5A &= ~(1 << COM5C1);
 //	PORTC &= ~(1 << PC2);
 	_delay_us(500);
 }
 
 void IR_transmit(uint8_t data) {
+	uint8_t sreg = SREG;
 	cli();
+
 	disable_interupt();
 	mark();
 	space();
@@ -146,5 +167,7 @@ void IR_transmit(uint8_t data) {
 	}
 	space();
 	enable_interupt();
-	sei();
+
+	SREG = sreg;
+	//sei();
 }

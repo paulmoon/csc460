@@ -3,19 +3,19 @@
 
 #define PROFILECODE 1
 
-/* ATMega2560 
+/* ATMega2560
 PC0 -> PC7 maps to digital pins 37 -> 30
 */
-#define PROFILE_DATADIRECTIONREGISTER   DDRC
-#define PROFILE_OUTPORT                 PORTC
-#define PROFILE_OUT_PIN0                PC0 
-#define PROFILE_OUT_PIN1                PC1
-#define PROFILE_OUT_PIN2                PC2
-#define PROFILE_OUT_PIN3                PC3
-#define PROFILE_OUT_PIN4                PC4
-#define PROFILE_OUT_PIN5                PC5
-#define PROFILE_OUT_PIN6                PC6
-#define PROFILE_OUT_PIN7                PC7
+#define PROFILE_DATADIRECTIONREGISTER   DDRA
+#define PROFILE_OUTPORT                 PORTA
+#define PROFILE_OUT_PIN0                PA0
+#define PROFILE_OUT_PIN1                PA1
+#define PROFILE_OUT_PIN2                PA2
+#define PROFILE_OUT_PIN3                PA3
+#define PROFILE_OUT_PIN4                PA4
+#define PROFILE_OUT_PIN5                PA5
+#define PROFILE_OUT_PIN6                PA6
+#define PROFILE_OUT_PIN7                PA7
 
 #if PROFILECODE
 

@@ -132,6 +132,14 @@ void p(){
 	}
 }
 
+void transmit_ir() {
+	for (;;) {
+
+		IR_transmit((uint8_t) 'A');
+		Task_Next();
+	}
+}
+
 void rr_roomba_controler() {
 	//Start the Roomba for the first time.
 	Roomba_Init();
@@ -221,18 +229,19 @@ int r_main(void)
 
 	//Initialize radio.
 	cli();
-	Radio_Init();
+	// Radio_Init();
 	IR_init();
-	Radio_Configure_Rx(RADIO_PIPE_0, ROOMBA_ADDRESSES[roomba_num], ENABLE);
-	Radio_Configure(RADIO_2MBPS, RADIO_HIGHEST_POWER);
+	// Radio_Configure_Rx(RADIO_PIPE_0, ROOMBA_ADDRESSES[roomba_num], ENABLE);
+	// Radio_Configure(RADIO_2MBPS, RADIO_HIGHEST_POWER);
 	sei();
 
 	radio_receive_service = Service_Init();
 	ir_receive_service = Service_Init();
-	Task_Create_RR(rr_roomba_controler,0);
+	// Task_Create_RR(rr_roomba_controler,0);
 	Task_Create_Periodic(per_roomba_timeout,0,10,9,250);
-	Task_Create_Periodic(p,0,200,9,251);
-
+//	Task_Create_Periodic(p,0,200,9,251);
+	Task_Create_Periodic(transmit_ir, 0, 200, 10, 303);
+	//Task_Create_RR(transmit_ir, 0);
 	Task_Terminate();
 	return;
 }
