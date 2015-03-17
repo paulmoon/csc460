@@ -1,1 +1,4 @@
 Project2/GccApplication3/GccApplication3/Debug/*
+Debug/
+*.o
+*~

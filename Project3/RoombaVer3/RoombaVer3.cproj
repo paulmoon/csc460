@@ -172,6 +172,12 @@
     <Compile Include="rtos\os.h">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="rtos\timer.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="rtos\timer.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="trace\trace.c">
       <SubType>compile</SubType>
     </Compile>

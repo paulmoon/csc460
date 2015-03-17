@@ -232,8 +232,8 @@ void Radio_Init()
 	DEBUG_INIT;
 	DEBUG_2_LOW;
 	DEBUG_1_LOW;
-	
-	
+
+
 
 	// disable radio during config
 	CE_LOW();
@@ -495,12 +495,12 @@ ISR(INT4_vect)
 
     	tx_last_status = RADIO_TX_MAX_RT;
     }
-	
+
     // clear the interrupt flags.
 	status = _BV(RX_DR) | _BV(TX_DS) | _BV(MAX_RT);
 	set_register(STATUS, &status, 1);
 	DEBUG_2_HIGH;
-	
+
     CE_HIGH();
 }
 

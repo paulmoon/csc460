@@ -28,7 +28,6 @@ volatile uint8_t outputByte = 0;
 //Timer 1 runs signaling.
 //Output on pin 10 (PB4/OC2A)
 //Input on pin 3 (PE5/INT5)
-/*
 void IR_init() {
 
 	//PWM Timer 2
@@ -43,19 +42,18 @@ void IR_init() {
 	TCCR2B |= (1<<WGM22);
 	//No Prescaller
 	TCCR2B |= (1<<CS20);
-
-	OCR1A = 421; // 38khz
-	OCR1C = 210; // 50% duty cycle
+	OCR2A = 421; // 38khz
+	OCR2B = 210; // 50% duty cycle
 
 	//Interrupt Timer 1.
-	// clear the control registers
-	TCCR1A = 0;
-	TCCR1B = 0;
+	//clear the control registers
+	TCCR3A = 0;
+	TCCR3B = 0;
 	//Leave on normal mode.
 	//No prescaller
-	TCCR1B |= (1<<CS10);
+	TCCR3B |= (1<<CS10);
 	//Make sure interrupt is disabled until external interrupt
-	TIMSK1 &= ~(1<<OCIE1A);
+	TIMSK3 &= ~(1<<OCIE3A);
 
 	//Setup the input interrupt on pin 3 (PE5/INT4)
 	DDRE &= ~(1<<PE5);
@@ -65,7 +63,7 @@ void IR_init() {
 // 	PCMSK2 |= (1<<)
 // 	EICRB |=
 }
-*/
+
 
 
 //Receiving a signal.
@@ -75,35 +73,38 @@ ISR(INT5_vect) {
 		is_receiving = 1;
 		currentBit = 0;
 		currentByte = 0;
+
 		//Clear any existing timer interrupts.
-		TIFR1 |= (1<<OCF1A);
+		TIFR3 |= (1<<OCF3A);
+
 		//Delay by 1.5 bit lengths.
-		OCR1A = TCNT1 + 12000;
-		TIMSK1 |= (1<<OCIE1A);
+		OCR3A = TCNT3 + 12000;
+		TIMSK3 |= (1<<OCIE3A);
 	}
 }
 
 //Read a new arriving signal.
-// ISR(TIMER1_COMPA_vect) {
-// 	if(is_receiving) {
-// 		if(PINE & (1<<PE4)) {
-// 			currentByte |= (1<<currentBit);
-// 		}
+ISR(TIMER3_COMPA_vect) {
+	if(is_receiving) {
+		if(PINE & (1<<PE4)) {
+			currentByte |= (1<<currentBit);
+		}
 
-// 		++currentBit;
-// 		OCR1A += 8000;
+		++currentBit;
+		OCR3A += 8000;
 
-// 		if(currentBit >= 8) {
-// 			is_receiving = 0;
-// 			TIMSK1 &= ~(1<<OCIE1A);
-// 			TIFR1 |= (1<<OCF1A);
-// 			EIFR |= (1<<INTF4);
-// 		}
-// 	}else if (is_transmitting) {
+		if(currentBit >= 8) {
+			is_receiving = 0;
+			TIMSK3 &= ~(1<<OCIE3A);
 
-// 	}
+			TIFR3 |= (1<<OCF3A);
+			EIFR |= (1<<INTF4);
+		}
+	}else if (is_transmitting) {
 
-// }
+	}
+
+}
 
 void enable_interupt() {
 	//Clears existing interrupts.
@@ -114,8 +115,8 @@ void enable_interupt() {
 void disable_interupt() {
 	EIMSK &= ~(1<<INT4);
 
-	TIMSK1 &= ~(1<<OCIE1A);
-	TIFR1 |= (1<<OCF1A);
+	TIMSK3 &= ~(1<<OCIE3A);
+	TIFR3 |= (1<<OCF3A);
 
 	is_receiving = 0;
 }

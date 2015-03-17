@@ -12,12 +12,10 @@ extern "C" {
  * \mainpage A Simple RTOS
  * This is a simple RTOS that supports pre-emptive multithreading.
  * 
- * \b Note: Please don't edit the interface file "os.h"
+ * \b Note: Please don't edit the interface file "os.h".
  *
  * \author Dr. Mantis Cheng
- * \author Justin Guze
- * \author Paul Hunter
- * \date   2015-MAR-08
+ * \date 5 Feb 2015
  *
  *
  * \section assumptions GLOBAL ASSUMPTIONS 
@@ -26,14 +24,13 @@ extern "C" {
  *   - Timer2 and SWI interrupts are reserved.
  * 
  *   - All runtime exceptions (where assumptions are violated) or other  
- *     unrecoverable errors get handled by calling OS_Abort() after 
- *	   assigning an appropriate value to error_msg.
- *   - All unspecified runtime errors have undefined behaviors, 
+ *     unrecoverable errors get handled by calling OS_Abort().  
+ *   - All unspecified runtime errors have undefined behaviours, 
  *     e.g., stack overflow.
  *
  *   Our RTOS scheduler timer resolution is defined by TICK. Hence, all timing parameters must
  *   be defined in multiples of TICKs. For PERIODIC tasks, its period, wcet and start time
- *   must be a multiple of TICKs. For ROUND_ROBIN tasks, its quantum is also defined in terms of TICKs.
+ *   must be a multiple of TICKs. For RR tasks, its quantum is also defined in terms of TICKs.
  *
  *
  * \section policy SCHEDULING POLICY   
@@ -44,8 +41,7 @@ extern "C" {
  *
  *   Preemption occurs immediately. Whenever preemption is feasible, it takes
  *   place instantly. As soon as a higher priority task becomes ready, it
- *   preempts all lower priority tasks. The one place this is not always true
- *   when ISRs make calls to the kernel.
+ *   preempts all lower priority tasks.
  *
  *
  * \section system SYSTEM TASKS
@@ -62,9 +58,9 @@ extern "C" {
  * \section periodic PERIODIC TASKS
  *
  *   PERIODIC tasks are scheduled based on a per-task scheduling period,
- *   worst-case execution time (wcet) and start time, all measured in TICKs. 
- *   Periodic tasks are time-critical; they are \b NOT allowed to wait 
- *   on any synchronization primitives, e.g. Service_Subscribe(). For example,
+ *   worst-case execution time (wcet) and start time. Periodic tasks are time-critical;
+ *   they are \b NOT allowed to wait on any synchronization primitives, e.g.
+ *   Service_Subscribe(). For example,
  *
  *   void p() { ... }
  *
@@ -99,16 +95,18 @@ extern "C" {
  *   
  *   It is an error if a PERIODIC task waits on an Event.
  *
+ *
  * \section roundrobin ROUND-ROBIN TASKS
  *   
- *   ROUND_ROBIN tasks are FIFO, and they run at the lowest priority level, and can only 
- *   be executed only when there are no other SYSTEM or PERIODIC tasks running or ready. 
- *   Each ROUND_ROBIN task gets one quantum that is 1 TICK in length.
+ *   RR tasks are FIFO, and they run at the lowest priority level. 
+ *   If a RR task becomes ready, it will be executed only when there are no other SYSTEM 
+ *   or PERIODIC tasks running. Each RR task gets one quantum that is 1 TICK in length.
  *   At the end of its quantum, a RR task is re-enqueued in the RR queue.
  *   However, if a RR task is preempted before its quantum expires, it re-enters at the 
  *   front of its queue.
  *
  *   Only SYSTEM and RR tasks may wait for a service. Any task can send notifications over a service. 
+ *
  *
  * \section ipc SERVICES
  *
@@ -182,19 +180,39 @@ extern "C" {
   */
 /* limits */
 
-#define MAXPROCESS		8   /*Maximum number of tasks regardless of priority. */
-#define MAXPERIODICPRO  4   /*Maxmimum number of periodic tasks.*/
-#define MAXSERVICES		10  /*Maximum number of services. */
+/** max. number of processes supported */  
+#define MAXPROCESS		8   
 
 /** time resolution */
-#define TICK			5     /*resolution of system clock in milliseconds*/  
+#define TICK			    5     // resolution of system clock in milliseconds
+#define QUANTUM       5     // a quantum for RR tasks
 
 /** thread runtime stack */
-#define MAXSTACK 256   // bytes     
+#define MAXSTACK      512   // bytes
+
+/* scheduling levels */
+
+/** a scheduling level: system tasks with first-come-first-served policy 
+ * \sa \ref system, Task_Create().
+ */
+#define SYSTEM    3 
+
+/** a scheduling level: periodic tasks with predefined intervals 
+ * \sa \ref periodic, Task_Create().
+ */
+#define PERIODIC  2 
+
+/** A scheduling level: first-come-first-served cooperative tasks
+ * \sa \ref sporadic, Task_Create(). 
+ */
+#define RR        1      
 
 #ifndef NULL
-#define NULL	0   /* undefined */
+#define NULL     0   /* undefined */
 #endif
+
+#define IDLE     0  
+
 
 /*================
   *    T Y P E S
@@ -211,19 +229,30 @@ typedef struct service SERVICE;
   *================
   */
  
-
+  
+  
 /*==================================================================  
  *             A C C E S S    P R O C E D U R E S  
  *==================================================================  
  */  
 
-/** Abort the execution of this RTOS due to an unrecoverable error.
+  /*=====  OS   Initialization ===== */
+
+/** Initialize this RTOS; the standard default "main()" is defined
+ *  inside os.c, which is essentially OS_Init().
+ * \sa \ref boot.
+ *
+void OS_Init(void);
+ */
+
+
+/** Abort the execution of this RTOS due to an unrecoverable erorr.
  * \sa \ref assumptions. 
  */
 void OS_Abort();  
 
-  /*=====  Task API ===== */
 
+  /*=====  Task API ===== */
  /**
    * \param f  a parameterless function to be created as a process instance
    * \param arg an integer argument to be assigned to this process instance
@@ -231,26 +260,23 @@ void OS_Abort();
    * \sa Task_GetArg()
    *
    *  A new process is created to execute the parameterless
-   *  function @a f with an initial parameter @a arg, which is retrieved
-   *  by a call to Task_GetArg().  If a new process can be
-   *  created, 0 is returned, if a task could not be created
-   *  the OS will abort.
+   *  function \a f with an initial parameter \a arg, which is retrieved
+   *  by a call to Task_GetArg().  If a new process cannot be
+   *  created, 0 is returned; otherwise, it returns non-zero.
    *
    * \sa \ref policy
    */
 int8_t   Task_Create_System(void (*f)(void), int16_t arg);
-int8_t   Task_Create_RoundRobin(void (*f)(void), int16_t arg);
+int8_t   Task_Create_RR(    void (*f)(void), int16_t arg);
 
  /**
    * \param f a parameterless function to be created as a process instance
-   * \param arg an integer argument to be assigned to this process instanace
+   * \param arg an integer argument to be assigned to this process instance
    * \param period its execution period in TICKs
    * \param wcet its worst-case execution time in TICKs, must be less than "period"
    * \param start its start time in TICKs
    * \return 0 if not successful; otherwise non-zero.
    * \sa Task_GetArg()
-   * \note: It is not valid to provide negative numbers for period, wcet, or start,
-   *        but the compiler will not catch this for you. 
    *
    *  A new process is created to execute the parameterless
    *  function \a f with an initial parameter \a arg, which is retrieved
@@ -287,7 +313,6 @@ int16_t Task_GetArg();
  */
 SERVICE *Service_Init();
 
-
 /**  
   * \param s an Service descriptor
   * \param v pointer to memory where the received value will be written
@@ -298,12 +323,11 @@ SERVICE *Service_Init();
   */
 void Service_Subscribe( SERVICE *s, int16_t *v );
 
-
 /**  
-  * \param s a Service descriptor
+  * \param e a Service descriptor
   *
   * The calling task publishes a new value "v" to service "s". All waiting tasks on
-  * service "s" will be resumed and receive a copy of this value via their task argument. 
+  * service "s" will be resumed and receive a copy of this value "v". 
   * Values generated by services without subscribers will be lost.
   */
 void Service_Publish( SERVICE *s, int16_t v );
@@ -315,20 +339,18 @@ void Service_Publish( SERVICE *s, int16_t v );
 /**  
   * Returns the number of milliseconds since OS_Init(). Note that this number
   * wraps around after it overflows as an unsigned integer. The arithmetic
-  * of 2's complement will take care of this wrap-around behavior if you use
+  * of 2's complement will take care of this wrap-around behaviour if you use
   * this number correctly.
   * Let  T = Now() and we want to know when Now() reaches T+1000.
   * Now() is always increasing. Even if Now() wraps around, (Now() - T) always
   * >= 0. As long as the duration of interest is less than the wrap-around time,
   * then (Now() - T >= 1000) would mean we have reached T+1000.
   * However, we cannot compare Now() against T directly due to this wrap-around
-  * behavior.
+  * behaviour.
   * Now() will wrap around every 65536 milliseconds. Therefore, for measurement
   * purposes, it should be used for durations less than 65 seconds.
   */
 uint16_t Now();  // number of milliseconds since the RTOS boots.
-
-void OS_DisablePreemption();
 
 #ifdef __cplusplus
 }

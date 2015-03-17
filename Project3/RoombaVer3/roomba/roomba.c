@@ -14,7 +14,7 @@ void Roomba_Init()
 {
 	ROOMBA_DD_DDR |= 1<<ROOMBA_DD_PIN;
 	ROOMBA_DD_PORT &= ~(1<<ROOMBA_DD_PIN);
-	
+
 	// At 8 MHz, the AT90 generates a 57600 bps signal with a framing error rate of over 2%, which means that more than
 	// 1 out of every 50 bits is wrong.  The fastest bitrate with a low error rate that the Roomba supports is
 	// 38400 bps (0.2% error rate, or 1 bit out of every 500).
@@ -96,6 +96,7 @@ void Roomba_UpdateSensorPacket(ROOMBA_SENSOR_GROUP group, roomba_sensor_data_t* 
 	uart_reset_receive();
 }
 
+//Used to stop the Roomba when it gets shot.
 void Roomba_Drive( int16_t velocity, int16_t radius )
 {
 	Roomba_Send_Byte(DRIVE);

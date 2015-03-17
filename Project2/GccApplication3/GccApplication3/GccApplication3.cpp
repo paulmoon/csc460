@@ -8,13 +8,13 @@
 #include "trace/trace.h"
 #include "profiler.h"
 
-#define USE_TEST_000
+#define USE_MAIN
 #include "tests/test000_now.cpp"
 #include "tests/test001_create_system_task.cpp"
 #include "tests/test002_create_rr_task.cpp"
 #include "tests/test003_create_periodic_task.cpp"
 #include "tests/test004_multiple_periodic.cpp"
-#include "tests/test005_3_plus_periodic.cpp"
+#include "tests/tefst005_3_plus_periodic.cpp"
 #include "tests/test006_all_task_types.cpp"
 #include "tests/test007_periodic_errors.cpp"
 #include "tests/test008_create_too_many_tasks.cpp"
@@ -71,8 +71,18 @@ void r3()
 	Task_Create_Periodic(p,0,10,1,0);	
 }
 
+SERVICE* serv1;
+void p4(){
+	for(;;){
+		Profile1();
+		Service_Publish(serv1,0);
+		Task_Next();
+	}
+}
+
 extern int r_main(){
     uart_init();
+	serv1 = Service_Init();
 
     /*int i = 0;
     for(i =0 ;i < 7; ++i )
@@ -103,8 +113,10 @@ extern int r_main(){
 	*/
 	
 	//Task_Create_Periodic(p3,0,10,1,0);	
-	Task_Create_RR(r3,0);
-		
+	//Task_Create_RR(r3,0);
+	
+	Task_Create_Periodic(p4,0,200,9,251);
+	Task_Terminate();
 	return 0;
 }
 #endif

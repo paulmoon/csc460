@@ -51,4 +51,6 @@ void Roomba_UpdateSensorPacket(ROOMBA_SENSOR_GROUP group, roomba_sensor_data_t* 
  */
 void Roomba_Drive( int16_t velocity, int16_t radius );
 
+void Roomba_Finish();
+
 #endif /* ROOMBA_H_ */
