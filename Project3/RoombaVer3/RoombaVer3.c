@@ -4,7 +4,6 @@
  * Created: 2015-03-05 13:32:56
  *  Author: Daniel
  */
-/*
 //#define F_CPU 16000000UL
 
 // IR Transmitter
@@ -42,9 +41,9 @@
 #include "timer.h"
 
 #include "ir.h"
-#include "cops_and_robbers.h"
+#include "../cops_and_robbers.h"
 #include "uart.h"
-#include "profiler.h"
+#include "../profiler.h"
 
 SERVICE* radio_receive_service;
 SERVICE* ir_receive_service;
@@ -52,11 +51,12 @@ OS_TIMER roomba_timeout_timer;
 
 volatile uint8_t is_roomba_timedout = 0;
 
-COPS_AND_ROBBERS roomba_num = ROBBER1;
+COPS_AND_ROBBERS roomba_num = COP1;
 volatile ROOMBA_STATUSES current_roomba_status = ROOMBA_ALIVE;
 volatile uint8_t last_ir_value = 0;
 
 void radio_rxhandler(uint8_t pipenumber) {
+	Profile4();
 	Service_Publish(radio_receive_service,0);
 }
 
@@ -92,7 +92,8 @@ void handleRoombaPacket(radiopacket_t *packet) {
 	}
 
 	//If the Roomba is dead it should not start moving.
-	if(packet->payload.command.command != DRIVE || current_roomba_status == ROOMBA_ALIVE) {
+	//if(packet->payload.command.command != DRIVE || current_roomba_status == ROOMBA_ALIVE) {
+	if(current_roomba_status == ROOMBA_ALIVE) {
 		//Pass the command to the Roomba.
 		Roomba_Send_Byte(packet->payload.command.command);
 		for (int i = 0; i < packet->payload.command.num_arg_bytes; i++)
@@ -128,6 +129,10 @@ void handleIRPacket(radiopacket_t *packet) {
 		//Aim the servo!
 	}
 
+	if( packet->payload.ir_command.ir_command == REQUEST_DATA ){
+		// request data from the ir receiver on the roomba
+	}
+
 	// Set the radio's destination address to be the remote station's address
 	Radio_Set_Tx_Addr(packet->payload.command.sender_address);
 
@@ -151,20 +156,27 @@ void handleStatusPacket(radiopacket_t *packet) {
 	Radio_Transmit(packet, RADIO_RETURN_ON_TX);
 }
 
-void transmit_ir() {
-	for (;;) {
-		//IR_transmit((uint8_t) 'A');
-		//Service_Publish(radio_receive_service,0);
-		Profile1();
+void p(){
+	for(;;){
+		Service_Publish(radio_receive_service,0);
 		Task_Next();
 	}
 }
+
+void transmit_ir() {
+	for (;;) {
+		IR_transmit((uint8_t) 'A');
+		Service_Publish(radio_receive_service,0);
+		Task_Next();
+	}
+}
+
+void profile_bytes(radiopacket_t *packet) ;
 
 void rr_roomba_controler() {
 	//Start the Roomba for the first time.
 	Roomba_Init();
 	int16_t value;
-	static int jordan_state = 0;
 
 	for(;;) {
 		Service_Subscribe(radio_receive_service,&value);
@@ -172,20 +184,12 @@ void rr_roomba_controler() {
 		//Restart the timeout timer.
 		timer_reset(&roomba_timeout_timer);
 		timer_resume(&roomba_timeout_timer);
+
 		if(is_roomba_timedout) {
 			is_roomba_timedout = 0;
 			Roomba_Init();
 		}
 
-		if( jordan_state == 0){
-			jordan_state = 1;
-			Roomba_Drive(20,8000);
-		}else{
-			jordan_state = 0;
-			Roomba_Drive(-20,8000);
-		}
-
-		continue;
 		// Stop the Roomba if it is dead.
 		if(current_roomba_status == ROOMBA_DEAD) {
 			Roomba_Drive(0,500);
@@ -197,18 +201,23 @@ void rr_roomba_controler() {
 		do {
 			result = Radio_Receive(&packet);
 			if(result == RADIO_RX_SUCCESS || result == RADIO_RX_MORE_PACKETS) {
-				//Handle Roomba Commands
+
+				// handle any roomba commands
 				if(packet.type == COMMAND) {
-					handleRoombaPacket(&packet);
+					Profile1();
+					// handleRoombaPacket(&packet);
 				}
 
 				//Handle IR Commands
 				if(packet.type == IR_COMMAND) {
-					handleIRPacket(&packet);
+					Profile2();
+					// handleIRPacket(&packet);
 				}
 
+				// we wan the roomba to send back some status data
 				if(packet.type == REQUEST_ROOMBA_STATUS_UPDATE) {
-					handleStatusPacket(&packet);
+					Profile3();
+					// handleStatusPacket(&packet);
 				}
 			}
 		} while (result == RADIO_RX_MORE_PACKETS);
@@ -235,50 +244,9 @@ void per_roomba_timeout() {
 	}
 }
 
-void radio_send()
-{
-	radiopacket_t packet;
-	int type_count = 0;
+void p2(){
 	for(;;){
-		if( type_count == 0){
-			Profile1();
-			Radio_Set_Tx_Addr(ROOMBA_ADDRESSES[COP1]);
-			packet.type = COMMAND;
-			for( int i = 0; i < 5; ++i){
-				packet.payload.command.sender_address[i] = ROOMBA_ADDRESSES[ROBBER1][i];
-			}
-			packet.payload.command.command = 0;
-			packet.payload.command.num_arg_bytes = 16;
-			for( int i = 0; i < 16; ++i){
-				packet.payload.command.arguments[i] = i;
-			}
-
-			Radio_Transmit(&packet, RADIO_RETURN_ON_TX);
-		}else if( type_count == 1){
-			Profile2();
-			Radio_Set_Tx_Addr(ROOMBA_ADDRESSES[COP1]);
-			packet.type = IR_COMMAND;
-
-			for( int i = 0; i < 5; ++i){
-				packet.payload.ir_command.sender_address[i] = ROOMBA_ADDRESSES[ROBBER1][i];
-			}
-			packet.payload.ir_command.ir_command = SEND_BYTE;
-			packet.payload.ir_command.ir_data = 1;
-			packet.payload.ir_command.servo_angle = 2;
-			Radio_Transmit(&packet, RADIO_RETURN_ON_TX);
-
-		}else if(type_count == 2){
-			Profile3();
-			Radio_Set_Tx_Addr(ROOMBA_ADDRESSES[COP1]);
-			packet.type = REQUEST_ROOMBA_STATUS_UPDATE;
-			for( int i = 0; i < 5; ++i){
-				packet.payload.status_command.sender_address[i] = ROOMBA_ADDRESSES[ROBBER1][i];
-			}
-			packet.payload.status_command.revive_roomba = 1;
-			Radio_Transmit(&packet, RADIO_RETURN_ON_TX);
-		}
-
-		type_count = (type_count + 1 )% 3;
+		Profile5();
 		Task_Next();
 	}
 }
@@ -303,15 +271,13 @@ int r_main(void)
 
 	radio_receive_service = Service_Init();
 	ir_receive_service = Service_Init();
+	Task_Create_RR(rr_roomba_controler,0);
+	Task_Create_Periodic(p2,0,200,10,250);
+	//Task_Create_Periodic(per_roomba_timeout,0,100,9,250);
 
-	Task_Create_Periodic(radio_send,0,100,20,250);
-
-	//Task_Create_RR(rr_roomba_controler,0);
-	//Task_Create_Periodic(per_roomba_timeout,0,10,9,250);
-//	Task_Create_Periodic(p,0,200,9,251);
 	//Task_Create_Periodic(transmit_ir,0,250,10, 303);
 	//Task_Create_RR(transmit_ir, 0);
+
 	Task_Terminate();
 	return 0 ;
 }
-*/
