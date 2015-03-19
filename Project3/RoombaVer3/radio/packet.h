@@ -20,8 +20,10 @@ typedef enum _pt
 {
 	COMMAND,				/// a command from the client station to the Roomba
 	SENSOR_DATA,			/// a reply from the Roomba, containing its sensor status data
+
 	IR_COMMAND,				/// a command to the Roomba's IR transmitter
 	IR_DATA,				/// a signal received from the Roomba's IR receiver
+
 	REQUEST_ROOMBA_STATUS_UPDATE,	/// request the current Roomba status, can also revive a Roomba.
 	ROOMBA_STATUS_UPDATE,			/// the Roomba's current status
 	MESSAGE					/// a generic message (not implemented by the Roomba)
@@ -63,7 +65,7 @@ typedef struct _ir_command {
 } pf_ir_command_t;
 
 typedef struct _ir_data {
-	uint8_t roomba_number;			
+	uint8_t roomba_number;
 	uint8_t ir_data;				/// The last received IR signal
 } pf_ir_data_t;
 
