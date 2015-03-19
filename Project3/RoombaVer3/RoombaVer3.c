@@ -52,7 +52,7 @@ OS_TIMER roomba_timeout_timer;
 
 volatile uint8_t is_roomba_timedout = 0;
 
-COPS_AND_ROBBERS roomba_num = COP1;
+COPS_AND_ROBBERS roomba_num = ROBBER1;
 volatile ROOMBA_STATUSES current_roomba_status = ROOMBA_ALIVE;
 volatile uint8_t last_ir_value = 0;
 
@@ -151,17 +151,11 @@ void handleStatusPacket(radiopacket_t *packet) {
 	Radio_Transmit(packet, RADIO_RETURN_ON_TX);
 }
 
-void p(){
-	for(;;){
-		Service_Publish(radio_receive_service,0);
-		Task_Next();
-	}
-}
-
 void transmit_ir() {
 	for (;;) {
-		IR_transmit((uint8_t) 'A');
-		Service_Publish(radio_receive_service,0);
+		//IR_transmit((uint8_t) 'A');
+		//Service_Publish(radio_receive_service,0);
+		Profile1();
 		Task_Next();
 	}
 }
@@ -241,6 +235,54 @@ void per_roomba_timeout() {
 	}
 }
 
+void radio_send()
+{
+	radiopacket_t packet;
+	int type_count = 0;
+	for(;;){
+		if( type_count == 0){
+			Profile1();
+			Radio_Set_Tx_Addr(ROOMBA_ADDRESSES[COP1]);
+			packet.type = COMMAND;
+			for( int i = 0; i < 5; ++i){
+				packet.payload.command.sender_address[i] = ROOMBA_ADDRESSES[ROBBER1][i];
+			}
+			packet.payload.command.command = 0;
+			packet.payload.command.num_arg_bytes = 16;
+			for( int i = 0; i < 16; ++i){
+				packet.payload.command.arguments[i] = i;
+			}
+
+			Radio_Transmit(&packet, RADIO_RETURN_ON_TX);
+		}else if( type_count == 1){
+			Profile2();
+			Radio_Set_Tx_Addr(ROOMBA_ADDRESSES[COP1]);
+			packet.type = IR_COMMAND;
+
+			for( int i = 0; i < 5; ++i){
+				packet.payload.ir_command.sender_address[i] = ROOMBA_ADDRESSES[ROBBER1][i];
+			}
+			packet.payload.ir_command.ir_command = SEND_BYTE;
+			packet.payload.ir_command.ir_data = 1;
+			packet.payload.ir_command.servo_angle = 2;
+			Radio_Transmit(&packet, RADIO_RETURN_ON_TX);
+
+		}else if(type_count == 2){
+			Profile3();
+			Radio_Set_Tx_Addr(ROOMBA_ADDRESSES[COP1]);
+			packet.type = REQUEST_ROOMBA_STATUS_UPDATE;
+			for( int i = 0; i < 5; ++i){
+				packet.payload.status_command.sender_address[i] = ROOMBA_ADDRESSES[ROBBER1][i];
+			}
+			packet.payload.status_command.revive_roomba = 1;
+			Radio_Transmit(&packet, RADIO_RETURN_ON_TX);
+		}
+
+		type_count = (type_count + 1 )% 3;
+		Task_Next();
+	}
+}
+
 
 int r_main(void)
 {
@@ -261,6 +303,9 @@ int r_main(void)
 
 	radio_receive_service = Service_Init();
 	ir_receive_service = Service_Init();
+
+	Task_Create_Periodic(radio_send,0,100,20,250);
+
 	//Task_Create_RR(rr_roomba_controler,0);
 	//Task_Create_Periodic(per_roomba_timeout,0,10,9,250);
 //	Task_Create_Periodic(p,0,200,9,251);
