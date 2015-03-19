@@ -126,7 +126,6 @@ void handleStatusPacket(radiopacket_t *packet) {
 
 void p(){
 	for(;;){
-		Profile1();
 		Service_Publish(radio_receive_service,0);
 		Task_Next();
 	}
@@ -134,8 +133,8 @@ void p(){
 
 void transmit_ir() {
 	for (;;) {
-
 		IR_transmit((uint8_t) 'A');
+		//EIMSK |= (1 << INT5);
 		Task_Next();
 	}
 }
@@ -159,11 +158,9 @@ void rr_roomba_controler() {
 
 		if( jordan_state == 0){
 			jordan_state = 1;
-			Profile2();
 			Roomba_Drive(100,8000);
 		}else{
 			jordan_state = 0;
-			Profile3();
 			Roomba_Drive(-100,8000);
 		}
 
@@ -238,10 +235,10 @@ int r_main(void)
 	radio_receive_service = Service_Init();
 	ir_receive_service = Service_Init();
 	// Task_Create_RR(rr_roomba_controler,0);
-	Task_Create_Periodic(per_roomba_timeout,0,10,9,250);
+	//Task_Create_Periodic(per_roomba_timeout,0,10,9,250);
 //	Task_Create_Periodic(p,0,200,9,251);
-	Task_Create_Periodic(transmit_ir, 0, 200, 10, 303);
+	Task_Create_Periodic(transmit_ir,0,50,10, 303);
 	//Task_Create_RR(transmit_ir, 0);
 	Task_Terminate();
-	return;
+	return 0 ;
 }

@@ -116,6 +116,10 @@ EICRB - External Interrupt Control Register B
 EIFR - external interrupt flag register
     INTF7:0
     flag is set once a interrupt has occurred.
+    Cleared by writing a 1 to the bit
+
+EIMSK - external interrupt mask
+
 
 ISCn - interrupt service control
 

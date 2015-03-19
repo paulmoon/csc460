@@ -1,9 +1,9 @@
 /**
  * @file   error_code.h
  *
- * @brief Error messages returned in OS_Abort().
+ * @brief Error codes used in triggering OS_Abort().
  *        Green errors are initialization errors
- *        Red errors are runt time errors
+ *        Red errors are run-time errors
  *
  * CSC 460/560 Real Time Operating Systems - Mantis Cheng
  *
@@ -15,53 +15,48 @@
 
 enum {
 
+/** GREEN ERRORS -- Initialize time errors. */
+    
+ERR_1_INIT_FAILURE,
+
 /** RED ERRORS -- Run time errors. */
 
 /** User called OS_Abort() */
-ERR_RUN_1_USER_CALLED_OS_ABORT,
-
-/** ISR made a request that only tasks are allowed. */
-ERR_RUN_2_ILLEGAL_ISR_KERNEL_REQUEST,
-
-/** RTOS Internal error in handling request. */
-ERR_RUN_3_RTOS_INTERNAL_ERROR,
-
-
-/** Periodic Tasks runtime errors */
+ERR_RUN_0_USER_CALLED_OS_ABORT,
 
 /** Too many tasks created. Only allowed MAXPROCESS at any time.*/
-ERR_RUN_4_TOO_MANY_TASKS,
+ERR_RUN_1_TOO_MANY_TASKS,
 
-/** WCET is too long, or PERIOD is too short. take your pick. */
-ERR_RUN_5_INVALID_WCET_AND_PERIOD,
+ERR_RUN_2_TOO_MANY_PERIODIC_TASKS,
 
-/** Invalid start time for periodic task. Start time is either negative or
-   it was trying to start in the past. */
-ERR_RUN_6_INVALID_START_TIME,
+ERR_RUN_3_PERIODIC_INVALID_CONFIGURATION,
 
 /** PERIODIC task still running at end of time slot. */
-ERR_RUN_7_PERIODIC_TOOK_TOO_LONG,
+ERR_RUN_4_PERIODIC_TOOK_TOO_LONG,
 
-/** Two periodic tasks are ready. */
-ERR_RUN_8_TWO_PERIODIC_TASKS_READY,
+/** Two periodic tasks were scheduled for the same time! */
+ERR_RUN_5_PERIODIC_TASKS_SCHEDULED_AST, 
 
-/** Current task is periodic, and a periodic task is enqueued to the ready queue. 
-	More specific version of ERR_RUN_9_TWO_PERIODIC_TASKS_READY */
-ERR_RUN_9_PERIODIC_TASK_TIME_CONFLICT,
+/** ISR made a request that only tasks are allowed. */
+ERR_RUN_6_ILLEGAL_ISR_KERNEL_REQUEST,
 
-ERR_RUN_10_NO_FREE_PERIODIC_BLOCK,
+/** RTOS Internal error in handling request. */
+ERR_RUN_7_RTOS_INTERNAL_ERROR,
 
+/** Max services reached */
+ERR_RUN_8_SERVICE_CAPACITY_REACHED,
 
-/** SERVICE runtime errors */
+/* The service requested does not exist */
+ERR_RUN_9_INVALID_SERVICE,
 
-/** Trying to creat too many services */
-ERR_RUN_11_TOO_MANY_SERVICES,
+/* A periodic task subscribed to a service, this is not legal */
+ERR_RUN_10_PERIODIC_SUBSCRIBE,
 
-/** Periodic tasks should not be able to subscribe to a service */
-ERR_RUN_12_PERIODIC_CANT_SUBSCRIBE,
+/* Found a periodic task when publishing to a service */
+ERR_RUN_11_PERIODIC_FOUND_WHEN_PUBLISHING,
 
-/** Trying to use an invalid service descriptor.*/
-ERR_RUN_13_INVALID_SERVICE_DESCRIPTOR,
+/* Task found without a priority in the service */
+ERR_RUN_12_TASK_WITHOUT_PRIORITY
 
 };
 
