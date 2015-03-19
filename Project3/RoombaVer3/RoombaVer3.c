@@ -226,10 +226,10 @@ int r_main(void)
 
 	//Initialize radio.
 	cli();
-	// Radio_Init();
+	Radio_Init();
 	IR_init();
-	// Radio_Configure_Rx(RADIO_PIPE_0, ROOMBA_ADDRESSES[roomba_num], ENABLE);
-	// Radio_Configure(RADIO_2MBPS, RADIO_HIGHEST_POWER);
+	Radio_Configure_Rx(RADIO_PIPE_0, ROOMBA_ADDRESSES[roomba_num], ENABLE);
+	Radio_Configure(RADIO_2MBPS, RADIO_HIGHEST_POWER);
 	sei();
 
 	radio_receive_service = Service_Init();

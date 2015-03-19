@@ -51,7 +51,6 @@ COMnx1:0 - compare output mode
 CTC - compare timer counter
 
 
-
 TCCRnA  - [COM1A1,COM1A0,COM1B1,COM1B0,COM1C1,COM1C0,WGM11,WGM10]
     COMnA1:0 compare output mode
         controls the output compare pins (OCnA, OCnB, OCnC)

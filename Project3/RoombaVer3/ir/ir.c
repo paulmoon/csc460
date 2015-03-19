@@ -27,7 +27,7 @@ volatile uint8_t outputByte = 0;
 
 //Timer 5 runs PWM.
 // ouput onto pin44 (PL5/OC5C)
-//Timer 1 runs signaling.
+//Timer 3 runs signaling.
 //Output on pin 10 (PB4/OC2A)
 //Input on pin 3 (PE5/INT5)
 void IR_init() {
@@ -94,7 +94,9 @@ ISR(INT5_vect) {
 //Read a new arriving signal.
 ISR(TIMER3_COMPA_vect) {
 	if(is_receiving) {
-		if(PINE & (1<<PE4)) {
+
+		// check to see if the input pin is HIGH ( digital pint 3)
+		if(PINE & (1<<PE5)) {
 			currentByte |= (1<<currentBit);
 		}
 
@@ -103,12 +105,19 @@ ISR(TIMER3_COMPA_vect) {
 
 		if(currentBit >= 8) {
 			is_receiving = 0;
+
+			// disable further timer3 interrupts
 			TIMSK3 &= ~(1<<OCIE3A);
 
+			// clear any pending timer3 interrupts
 			TIFR3 |= (1<<OCF3A);
 
 			// clear the any interrupts waiting on the IR receiver
 			EIFR |= (1<<INTF5);
+
+			// here we should call
+			// outputByte = currentByte;
+			// ir_rxhandler();
 		}
 	}else if (is_transmitting) {
 
@@ -156,4 +165,8 @@ void IR_transmit(uint8_t data) {
 	enable_interrupt();
 
 	SREG = sreg; // sei();
+}
+
+uint8_t IR_getLast(){
+	return outputByte;
 }
