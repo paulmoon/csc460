@@ -65,8 +65,10 @@ void IR_init() {
 	// DDRE &= ~(1<<PE5);
 	// EICRB |= (1<<ISC51) | (1<<ISC50);
 	DDRE &= ~_BV(PE5);
-	EICRB |= _BV(ISC51);
-	EICRB &= ~_BV(ISC50);
+
+	EICRB |= (1<<ISC51) | (1<<ISC50);
+	// EICRB |= _BV(ISC51);
+	// EICRB &= ~_BV(ISC50);
 	EIMSK |= _BV(INT5);
 	EIFR |= _BV(INTF5);
 }
@@ -84,7 +86,7 @@ ISR(INT5_vect) {
 		TIFR3 |= (1<<OCF3A);
 
 		//Delay by 1.5 bit lengths.
-		// i.e 8000 + 4000
+		// i.e 8000 + 8000
 		OCR3A = TCNT3 + 12000;
 		// enable timer 3 interrupts
 		TIMSK3 |= (1<<OCIE3A);
@@ -95,10 +97,11 @@ ISR(INT5_vect) {
 ISR(TIMER3_COMPA_vect) {
 	if(is_receiving) {
 
-		// check to see if the input pin is HIGH ( digital pint 3)
-		if(PINE & (1<<PE5)) {
+		// check to see if the input pin is HIGH ( digital pin 3)
+		if(!(PINE & (1<<PE5)) ) {
 			currentByte |= (1<<currentBit);
 		}
+
 
 		++currentBit;
 		OCR3A += 8000;
@@ -116,8 +119,8 @@ ISR(TIMER3_COMPA_vect) {
 			EIFR |= (1<<INTF5);
 
 			// here we should call
-			// outputByte = currentByte;
-			// ir_rxhandler();
+			outputByte = currentByte;
+			ir_rxhandler();
 		}
 	}else if (is_transmitting) {
 
@@ -152,6 +155,7 @@ void IR_transmit(uint8_t data) {
 	cli();
 
 	disable_interrupt();
+	TCCR5A |= (1<<COM5C1);
 	mark();
 	space();
 	for(int i = 0; i < 8; i++) {

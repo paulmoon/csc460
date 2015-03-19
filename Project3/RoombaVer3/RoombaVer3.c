@@ -7,6 +7,33 @@
 
 //#define F_CPU 16000000UL
 
+// IR Transmitter
+// - 			= GND
+// (middle)	=
+// s 			= 2.2 Ohz -- 44
+
+// IR Receiver
+// -			= Gnd
+// (middle)	= Vcc
+// s 			= 3
+
+// Radio
+// CE 	= 8
+// CSN 	= 9
+// SCK 	= 52
+// MO  	= 51
+// MI 	= 50
+// IRQ	= 2
+// VCC 	= 47
+// GND 	= GND
+
+// Roomba  		ATMega
+// Red(6.3v)		Vin
+// Orange(GND)		GND
+// Yellow(Tx)		19
+// Green(Rx)		18
+// DD 				20
+
 #include <avr/io.h>
 #include "os.h"
 #include "roomba.h"
@@ -157,11 +184,9 @@ void rr_roomba_controler() {
 		}
 
 		if( jordan_state == 0){
-			Profile1();
 			jordan_state = 1;
 			Roomba_Drive(20,8000);
 		}else{
-			Profile2();
 			jordan_state = 0;
 			Roomba_Drive(-20,8000);
 		}
@@ -236,10 +261,10 @@ int r_main(void)
 
 	radio_receive_service = Service_Init();
 	ir_receive_service = Service_Init();
-	Task_Create_RR(rr_roomba_controler,0);
-	Task_Create_Periodic(per_roomba_timeout,0,10,9,250);
+	//Task_Create_RR(rr_roomba_controler,0);
+	//Task_Create_Periodic(per_roomba_timeout,0,10,9,250);
 //	Task_Create_Periodic(p,0,200,9,251);
-	Task_Create_Periodic(transmit_ir,0,250,10, 303);
+	//Task_Create_Periodic(transmit_ir,0,250,10, 303);
 	//Task_Create_RR(transmit_ir, 0);
 	Task_Terminate();
 	return 0 ;
