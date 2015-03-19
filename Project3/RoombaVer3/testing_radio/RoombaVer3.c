@@ -42,9 +42,9 @@
 #include "timer.h"
 
 #include "ir.h"
-#include "cops_and_robbers.h"
+#include "../cops_and_robbers.h"
 #include "uart.h"
-#include "profiler.h"
+#include "../profiler.h"
 
 SERVICE* radio_receive_service;
 SERVICE* ir_receive_service;
@@ -57,6 +57,7 @@ volatile ROOMBA_STATUSES current_roomba_status = ROOMBA_ALIVE;
 volatile uint8_t last_ir_value = 0;
 
 void radio_rxhandler(uint8_t pipenumber) {
+	//Profile4();
 	Service_Publish(radio_receive_service,0);
 }
 
@@ -151,8 +152,6 @@ void handleStatusPacket(radiopacket_t *packet) {
 	Radio_Transmit(packet, RADIO_RETURN_ON_TX);
 }
 
-void profile_bytes(radiopacket_t *packet);
-
 void p(){
 	for(;;){
 		Service_Publish(radio_receive_service,0);
@@ -167,6 +166,8 @@ void transmit_ir() {
 		Task_Next();
 	}
 }
+
+void profile_bytes(radiopacket_t *packet) ;
 
 void rr_roomba_controler() {
 	//Start the Roomba for the first time.
@@ -193,7 +194,6 @@ void rr_roomba_controler() {
 			Roomba_Drive(-20,8000);
 		}
 
-		//continue;
 		// Stop the Roomba if it is dead.
 		if(current_roomba_status == ROOMBA_DEAD) {
 			Roomba_Drive(0,500);
@@ -206,21 +206,99 @@ void rr_roomba_controler() {
 			result = Radio_Receive(&packet);
 			if(result == RADIO_RX_SUCCESS || result == RADIO_RX_MORE_PACKETS) {
 				if(packet.type == COMMAND) {
-					Profile1();
-					profile_bytes(&packet);
+					// Profile1();
+
+					// int good_flag = 1;
+					// do{
+					// 	if( COMMAND != packet.type){
+
+					// 		good_flag = 0;
+					// 		break;
+					// 	}
+					// 	for( int i = 0; i < 5; ++i){
+					// 		if( packet.payload.command.sender_address[i] != ROOMBA_ADDRESSES[ROBBER1][i] ){
+					// 			Profile2();
+					// 			good_flag = 0;
+					// 			break;
+					// 		}
+					// 	}
+					// 	if(good_flag == 0){
+					// 		Profile3();
+					// 		break;
+					// 	}
+
+					// 	if( packet.payload.command.command != 0){
+					// 		Profile4();
+					// 		good_flag= 0;
+					// 		break;
+					// 	}
+					// 	if( packet.payload.command.num_arg_bytes != 16){
+					// 		Profile5();
+					// 		good_flag = 0;
+					// 		break;
+					// 	}
+					// 	for( int i = 0; i < 16; ++i){
+					// 		if( packet.payload.command.arguments[i] != i){
+					// 			good_flag = 0;
+					// 			break;
+					// 		}
+					// 	}
+
+					// }while(0);
+
+					// if(good_flag == 0){
+					// 	Profile1();
+					// 	Profile1();
+					// }else{
+					// 	Profile1();
+					// }
+
+					//profile_bytes(&packet);
 					//handleRoombaPacket(&packet);
 				}
 
 				//Handle IR Commands
 				if(packet.type == IR_COMMAND) {
-					Profile2();
-					profile_bytes(&packet);
+					Profile1();
+					int good_flag = 1;
+					do{
+						for( int i = 0; i < 5; ++i){
+							if(packet.payload.ir_command.sender_address[i] != ROOMBA_ADDRESSES[ROBBER1][i]){
+								good_flag = 0;
+								break;
+							}
+						}
+						if( good_flag == 0){
+							break;
+						}
+						if( packet.payload.ir_command.ir_command != SEND_BYTE ){
+							good_flag = 0;
+							break;
+						}
+						if( packet.payload.ir_command.ir_data != 1){
+							good_flag =0;
+							break;
+						}
+						if(packet.payload.ir_command.servo_angle != 2){
+							good_flag = 0;
+							break;
+						}
+					}while(0);
+
+					if(good_flag == 0){
+						Profile1();
+						Profile1();
+					}else{
+						Profile1();
+					}
+					//Profile2();
+					//profile_bytes(&packet);
 					//handleIRPacket(&packet);
 				}
 
 				if(packet.type == REQUEST_ROOMBA_STATUS_UPDATE) {
-					Profile3();
-					profile_bytes(&packet);
+					//Profile3();
+					//profile_bytes(&packet);
 					//handleStatusPacket(&packet);
 				}
 			}

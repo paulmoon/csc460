@@ -178,6 +178,9 @@
     <Compile Include="rtos\timer.h">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="testing_radio\RoombaVer3.c">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="trace\trace.c">
       <SubType>compile</SubType>
     </Compile>
@@ -193,6 +196,7 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="ir\" />
+    <Folder Include="testing_radio" />
     <Folder Include="rtos" />
     <Folder Include="trace" />
     <Folder Include="radio\" />

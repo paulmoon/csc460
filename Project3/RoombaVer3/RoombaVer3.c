@@ -4,7 +4,7 @@
  * Created: 2015-03-05 13:32:56
  *  Author: Daniel
  */
-
+/*
 //#define F_CPU 16000000UL
 
 // IR Transmitter
@@ -314,3 +314,4 @@ int r_main(void)
 	Task_Terminate();
 	return 0 ;
 }
+*/
