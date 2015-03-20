@@ -11,7 +11,7 @@
 	- removed UART_BPS code and hard-coded it to be 9600 baud
 */
 
-#define UART_BUFFER_SIZE 100			// size of Rx ring buffer.
+#define TRACE_UART_BUFFER_SIZE 100			// size of Rx ring buffer.
 
 void trace_uart_init();
 void trace_uart_putchar(char c);

@@ -187,6 +187,12 @@
     <Compile Include="trace\trace.h">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="trace_uart\trace_uart.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="trace_uart\trace_uart.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="uart\uart.c">
       <SubType>compile</SubType>
     </Compile>
@@ -196,6 +202,7 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="ir\" />
+    <Folder Include="trace_uart" />
     <Folder Include="testing_radio" />
     <Folder Include="rtos" />
     <Folder Include="trace" />

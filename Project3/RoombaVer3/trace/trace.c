@@ -14,12 +14,12 @@
  */
 
 #include "trace.h"
-//#include "uart/uart.h"
+#include "../trace_uart/trace_uart.h"
 
-/** boolean value to check wether we have printed the trace or not */
+/** boolean value to check whether we have printed the trace or not */
 uint8_t trace_number = 0;
 
-/** boolean value to check wether we have printed the trace or not */
+/** boolean value to check whether we have printed the trace or not */
 uint8_t trace_printed = 0;
 
 /** array that holds all the elements of the trace */
@@ -47,14 +47,14 @@ void print_trace()
 	{
         /* the test header */
         returned_chars = sprintf((char*)&trace_buffer, "T%03d;", trace_number);
-        uart_write((uint8_t*)trace_buffer, returned_chars);    
+        trace_uart_write((uint8_t*)trace_buffer, returned_chars);    
 
         /* all traces as 5 digit padded decimals 
         for(i = 0; i < TRACE_ARRAY_SIZE; i++)*/
 		for(i = 0; i < (int)trace_counter; i++)
         {
             returned_chars = sprintf((char*)&trace_buffer, "%u;", trace_array[i]);
-            uart_write((uint8_t*)trace_buffer, returned_chars);
+            trace_uart_write((uint8_t*)trace_buffer, returned_chars);
             //_delay_ms(1);
         }
 

@@ -32,7 +32,7 @@
 // Yellow(Tx)		19
 // Green(Rx)		18
 // DD 				20
-
+/*
 #include <avr/io.h>
 #include "os.h"
 #include "roomba.h"
@@ -281,3 +281,4 @@ int r_main(void)
 	Task_Terminate();
 	return 0 ;
 }
+*/

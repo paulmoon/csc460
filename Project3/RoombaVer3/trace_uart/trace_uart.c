@@ -8,7 +8,7 @@
  Variables appearing in both ISR/Main are defined as 'volatile'.
 */
 static volatile int rxn; // buffer 'element' counter.
-static volatile char rx[UART_BUFFER_SIZE]; // buffer of 'char'.
+static volatile char rx[TRACE_UART_BUFFER_SIZE]; // buffer of 'char'.
 static volatile char uart_rx;
 
 void trace_uart_putchar (char c)
@@ -21,7 +21,7 @@ void trace_uart_putchar (char c)
 
 char trace_uart_getchar (int index)
 {
-	if (index < UART_BUFFER_SIZE) {
+	if (index < TRACE_UART_BUFFER_SIZE) {
 		return rx[index];
 	}
 	return 0;
@@ -79,7 +79,7 @@ ISR(USART0_RX_vect)
 	//PORTB ^= _BV(PB7);
 
 	rx[rxn] = UDR0;
-	rxn = (rxn + 1) % UART_BUFFER_SIZE;
+	rxn = (rxn + 1) % TRACE_UART_BUFFER_SIZE;
 	uart_rx = 1; // notify main of receipt of data.
 	//PORTB = PORTB | _BV(PINB1);
 }
