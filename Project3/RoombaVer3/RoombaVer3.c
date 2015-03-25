@@ -4,7 +4,6 @@
  * Created: 2015-03-05 13:32:56
  *  Author: Daniel
  */
-//#define F_CPU 16000000UL
 
 // IR Transmitter
 // - 			= GND
@@ -32,7 +31,8 @@
 // Yellow(Tx)		19
 // Green(Rx)		18
 // DD 				20
-/*
+
+//#define F_CPU 16000000UL
 #include <avr/io.h>
 #include "os.h"
 #include "roomba.h"
@@ -41,9 +41,13 @@
 #include "timer.h"
 
 #include "ir.h"
-#include "../cops_and_robbers.h"
-#include "uart.h"
-#include "../profiler.h"
+#include "cops_and_robbers.h"
+#include "trace_uart/trace_uart.h"
+#include "trace/trace.h"
+#include "uart/uart.h"
+#include "profiler.h"
+#include "analog/analog.h"
+
 
 SERVICE* radio_receive_service;
 SERVICE* ir_receive_service;
@@ -55,8 +59,35 @@ COPS_AND_ROBBERS roomba_num = COP1;
 volatile ROOMBA_STATUSES current_roomba_status = ROOMBA_ALIVE;
 volatile uint8_t last_ir_value = 0;
 
+
+#define JORDAN_DEBUG_INIT (DDRB |= (1 << PB4));
+#define JORDAN_DEBUG_ON (PORTB |= (1<<PB4));
+#define JORDAN_DEBUG_OFF (PORTB &= ~(1<<PB4));
+
+void _blink_led()
+{
+	int16_t count = 2*Task_GetArg();
+	while(count >=0)
+	{
+		// TOGGLE the LED
+		PORTB ^= ( 1 << PB4);
+		--count;
+		Task_Next();
+	}
+	JORDAN_DEBUG_OFF
+}
+
+void blink_led(int16_t num_blinks,int16_t delay)
+{
+	//Profile2();
+	JORDAN_DEBUG_INIT
+	Task_Create_Periodic(_blink_led,num_blinks,delay,1,Now() + 1);
+}
+
+
+
 void radio_rxhandler(uint8_t pipenumber) {
-	Profile4();
+	Profile1();
 	Service_Publish(radio_receive_service,0);
 }
 
@@ -64,7 +95,8 @@ void radio_rxhandler(uint8_t pipenumber) {
 //	(Get Roomba state via state packets)
 void ir_rxhandler() {
 	uint8_t ir_value = IR_getLast();
-	Service_Publish(radio_receive_service,0);
+	//Service_Publish(radio_receive_service,0);
+	Service_Publish(ir_receive_service,0);
 	if(last_ir_value == IR_SHOOT) {
 		current_roomba_status = ROOMBA_DEAD;
 	} else if(roomba_num == COP1 && last_ir_value == IR_WAKE_COP1) {
@@ -92,7 +124,7 @@ void handleRoombaPacket(radiopacket_t *packet) {
 	}
 
 	//If the Roomba is dead it should not start moving.
-	//if(packet->payload.command.command != DRIVE || current_roomba_status == ROOMBA_ALIVE) {
+	// if(packet->payload.command.command != DRIVE || current_roomba_status == ROOMBA_ALIVE) {
 	if(current_roomba_status == ROOMBA_ALIVE) {
 		//Pass the command to the Roomba.
 		Roomba_Send_Byte(packet->payload.command.command);
@@ -106,9 +138,9 @@ void handleRoombaPacket(radiopacket_t *packet) {
 	Radio_Set_Tx_Addr(packet->payload.command.sender_address);
 
 	// Update the Roomba sensors into the packet structure that will be transmitted.
-	//Roomba_UpdateSensorPacket(1, &packet.payload.sensors.sensors);
-	//Roomba_UpdateSensorPacket(2, &packet.payload.sensors.sensors);
-	//Roomba_UpdateSensorPacket(3, &packet.payload.sensors.sensors);
+	//Roomba_UpdateSensorPacket(EXTERNAL, &packet.payload.sensors.sensors);
+	//Roomba_UpdateSensorPacket(CHASSIS, &packet.payload.sensors.sensors);
+	//Roomba_UpdateSensorPacket(INTERNAL, &packet.payload.sensors.sensors);
 
 	// send the sensor packet back to the remote station.
 	packet->type = SENSOR_DATA;
@@ -117,7 +149,6 @@ void handleRoombaPacket(radiopacket_t *packet) {
 }
 
 void handleIRPacket(radiopacket_t *packet) {
-
 	//Transmit data
 	if(packet->payload.ir_command.ir_command == SEND_BYTE) {
 		cli();
@@ -125,20 +156,13 @@ void handleIRPacket(radiopacket_t *packet) {
 		sei();
 	}
 
-	if(packet->payload.ir_command.ir_command == AIM_SERVO) {
-		//Aim the servo!
-	}
-
-	if( packet->payload.ir_command.ir_command == REQUEST_DATA ){
-		// request data from the ir receiver on the roomba
-	}
-
 	// Set the radio's destination address to be the remote station's address
 	Radio_Set_Tx_Addr(packet->payload.command.sender_address);
 
-	//Return last IR command recieved
+	//Return last IR command received
 	packet->type = IR_DATA;
-
+	packet->payload.ir_data.roomba_number = roomba_num;
+	packet->payload.ir_data.ir_data = IR_getLast();
 	Radio_Transmit(packet, RADIO_RETURN_ON_TX);
 }
 
@@ -156,23 +180,6 @@ void handleStatusPacket(radiopacket_t *packet) {
 	Radio_Transmit(packet, RADIO_RETURN_ON_TX);
 }
 
-void p(){
-	for(;;){
-		Service_Publish(radio_receive_service,0);
-		Task_Next();
-	}
-}
-
-void transmit_ir() {
-	for (;;) {
-		IR_transmit((uint8_t) 'A');
-		Service_Publish(radio_receive_service,0);
-		Task_Next();
-	}
-}
-
-void profile_bytes(radiopacket_t *packet) ;
-
 void rr_roomba_controler() {
 	//Start the Roomba for the first time.
 	Roomba_Init();
@@ -181,10 +188,9 @@ void rr_roomba_controler() {
 	for(;;) {
 		Service_Subscribe(radio_receive_service,&value);
 
-		//Restart the timeout timer.
+		// //Restart the timeout timer.
 		timer_reset(&roomba_timeout_timer);
 		timer_resume(&roomba_timeout_timer);
-
 		if(is_roomba_timedout) {
 			is_roomba_timedout = 0;
 			Roomba_Init();
@@ -199,31 +205,35 @@ void rr_roomba_controler() {
 		RADIO_RX_STATUS result;
 		radiopacket_t packet;
 		do {
+
 			result = Radio_Receive(&packet);
 			if(result == RADIO_RX_SUCCESS || result == RADIO_RX_MORE_PACKETS) {
+				//Profile5();
 
-				// handle any roomba commands
+
+				for(int i = 0;i < 100;++i){
+					JORDAN_DEBUG_ON;
+				}
+				//blink_led(1, 100);
+
 				if(packet.type == COMMAND) {
-					Profile1();
-					// handleRoombaPacket(&packet);
+					handleRoombaPacket(&packet);
 				}
 
 				//Handle IR Commands
 				if(packet.type == IR_COMMAND) {
-					Profile2();
-					// handleIRPacket(&packet);
+					handleIRPacket(&packet);
 				}
 
-				// we wan the roomba to send back some status data
 				if(packet.type == REQUEST_ROOMBA_STATUS_UPDATE) {
-					Profile3();
-					// handleStatusPacket(&packet);
+					handleStatusPacket(&packet);
 				}
 			}
 		} while (result == RADIO_RX_MORE_PACKETS);
+
+		JORDAN_DEBUG_OFF
 	}
 }
-
 
 //Check if the Roomba has been idle long enough to
 //	put it to sleep. This timer is reset every time a
@@ -244,9 +254,57 @@ void per_roomba_timeout() {
 	}
 }
 
-void p2(){
+void send_packet_task()
+{
+	// Set the radio's destination address to be the remote station's address
+	Radio_Set_Tx_Addr(ROOMBA_ADDRESSES[COP1]);
+	int16_t vel = 50;
+	int16_t rad = 8000;
+
 	for(;;){
-		Profile5();
+		// Profile1();
+
+		uint16_t vx = Analog_read(0);
+		uint16_t vy = Analog_read(1);
+
+		radiopacket_t packet;
+		packet.type = COMMAND;
+		for(int i =0;i < 5; ++i){
+			packet.payload.command.sender_address[i] = ROOMBA_ADDRESSES[COP2][i];
+		}
+		packet.payload.command.command = DRIVE;
+		packet.payload.command.num_arg_bytes = 4;
+
+		vx = ((vx /(1024/5)) - 2)*50;
+		vy = ((vy /(1024/5)) - 2)*100;
+
+
+		packet.payload.command.arguments[0] = HIGH_BYTE(vx);
+		packet.payload.command.arguments[1] = LOW_BYTE(vx);
+		packet.payload.command.arguments[2] = HIGH_BYTE(vy);
+		packet.payload.command.arguments[3] = LOW_BYTE(vy);
+
+		// Radio_Transmit(&packet, RADIO_RETURN_ON_TX);
+		Radio_Transmit(&packet, RADIO_WAIT_FOR_TX);
+		Task_Next();
+	}
+}
+
+void dump_trace()
+{
+	print_trace();
+}
+
+void jordan1()
+{
+	for(;;){
+		uint16_t a = Analog_read(9);
+		add_to_trace(a);
+
+		if(is_trace_full()){
+			Task_Create_RR(dump_trace,0);
+			Task_Terminate();
+		}
 		Task_Next();
 	}
 }
@@ -261,24 +319,38 @@ int r_main(void)
 	PORTL |= (1<<PL2);
 	_delay_ms(500);
 
+	trace_uart_init();
+	Analog_init();
+
 	//Initialize radio.
 	cli();
 	Radio_Init();
-	IR_init();
-	Radio_Configure_Rx(RADIO_PIPE_0, ROOMBA_ADDRESSES[roomba_num], ENABLE);
+	//IR_init();
+	// Radio_Configure_Rx(RADIO_PIPE_0, ROOMBA_ADDRESSES[roomba_send], ENABLE);
+	Radio_Configure_Rx(RADIO_PIPE_0, ROOMBA_ADDRESSES[COP1], ENABLE);
+	// Radio_Configure_Rx(RADIO_PIPE_0, ROOMBA_ADDRESSES[COP2], ENABLE);
+	//Radio_Configure_Rx(RADIO_PIPE_0, ROOMBA_ADDRESSES[roomba_send], ENABLE);
+
 	Radio_Configure(RADIO_2MBPS, RADIO_HIGHEST_POWER);
 	sei();
 
 	radio_receive_service = Service_Init();
 	ir_receive_service = Service_Init();
-	Task_Create_RR(rr_roomba_controler,0);
-	Task_Create_Periodic(p2,0,200,10,250);
-	//Task_Create_Periodic(per_roomba_timeout,0,100,9,250);
 
+	//blink_led(10,20);
+	//Task_Create_Periodic(jordan1,0,20,10,252);
+
+	// Task_Create_Periodic(send_packet_task,0,20,10,252);
+	JORDAN_DEBUG_INIT
+	Task_Create_RR(rr_roomba_controler,0);
+	//blink_led(5,100);
+
+	//Task_Create_Periodic(poll_pin, 0, 100, 10, 300);
+	// Task_Create_Periodic(check_button,0,20,9,250);
+	// Task_Create_Periodic(send_packet_task,0,100,10,252);
+//	Task_Create_Periodic(p,0,200,9,251);
 	//Task_Create_Periodic(transmit_ir,0,250,10, 303);
 	//Task_Create_RR(transmit_ir, 0);
-
 	Task_Terminate();
 	return 0 ;
 }
-*/

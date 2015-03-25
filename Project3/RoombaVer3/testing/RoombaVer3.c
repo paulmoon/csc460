@@ -5,6 +5,33 @@
  *  Author: Daniel
  */
 
+// IR Transmitter
+// - 			= GND
+// (middle)	=
+// s 			= 2.2 Ohz -- 44
+
+// IR Receiver
+// -			= Gnd
+// (middle)	= Vcc
+// s 			= 3
+
+// Radio
+// CE 	= 8
+// CSN 	= 9
+// SCK 	= 52
+// MO  	= 51
+// MI 	= 50
+// IRQ	= 2
+// VCC 	= 47
+// GND 	= GND
+
+// Roomba  		ATMega
+// Red(6.3v)		Vin
+// Orange(GND)		GND
+// Yellow(Tx)		19
+// Green(Rx)		18
+// DD 				20
+/*
 //#define F_CPU 16000000UL
 #include <avr/io.h>
 #include "os.h"
@@ -28,21 +55,10 @@ OS_TIMER roomba_timeout_timer;
 
 volatile uint8_t is_roomba_timedout = 0;
 
-
-// COP2 is sender
-// COP1 is receiver
 COPS_AND_ROBBERS roomba_num = COP1;
-// COPS_AND_ROBBERS roomba_recv = COP1;
-// COPS_AND_ROBBERS roomba_sender = COP2;
 volatile ROOMBA_STATUSES current_roomba_status = ROOMBA_ALIVE;
 volatile uint8_t last_ir_value = 0;
 
-#ifndef sbi
-	#define sbi(sfr, bit) (_SFR_BYTE(sfr) |= _BV(bit))
-#endif
-
-// void fireGun(radiopacket_t* packet,uint8_t b);
-// void moveCommand(radiopacket_t* packet, int16_t spd, int16_t deg);
 
 void radio_rxhandler(uint8_t pipenumber) {
 	Service_Publish(radio_receive_service,0);
@@ -80,13 +96,10 @@ void handleRoombaPacket(radiopacket_t *packet) {
 		return;
 	}
 
-	Profile1();
-
 	//If the Roomba is dead it should not start moving.
 	// if(packet->payload.command.command != DRIVE || current_roomba_status == ROOMBA_ALIVE) {
 	if(current_roomba_status == ROOMBA_ALIVE) {
 		//Pass the command to the Roomba.
-		Profile2();
 		Roomba_Send_Byte(packet->payload.command.command);
 		for (int i = 0; i < packet->payload.command.num_arg_bytes; i++)
 		{
@@ -98,9 +111,9 @@ void handleRoombaPacket(radiopacket_t *packet) {
 	Radio_Set_Tx_Addr(packet->payload.command.sender_address);
 
 	// Update the Roomba sensors into the packet structure that will be transmitted.
-	//Roomba_UpdateSensorPacket(1, &packet.payload.sensors.sensors);
-	//Roomba_UpdateSensorPacket(2, &packet.payload.sensors.sensors);
-	//Roomba_UpdateSensorPacket(3, &packet.payload.sensors.sensors);
+	//Roomba_UpdateSensorPacket(EXTERNAL, &packet.payload.sensors.sensors);
+	//Roomba_UpdateSensorPacket(CHASSIS, &packet.payload.sensors.sensors);
+	//Roomba_UpdateSensorPacket(INTERNAL, &packet.payload.sensors.sensors);
 
 	// send the sensor packet back to the remote station.
 	packet->type = SENSOR_DATA;
@@ -109,7 +122,6 @@ void handleRoombaPacket(radiopacket_t *packet) {
 }
 
 void handleIRPacket(radiopacket_t *packet) {
-
 	//Transmit data
 	if(packet->payload.ir_command.ir_command == SEND_BYTE) {
 		cli();
@@ -117,16 +129,13 @@ void handleIRPacket(radiopacket_t *packet) {
 		sei();
 	}
 
-	if(packet->payload.ir_command.ir_command == AIM_SERVO) {
-		//Aim the servo!
-	}
-
 	// Set the radio's destination address to be the remote station's address
 	Radio_Set_Tx_Addr(packet->payload.command.sender_address);
 
-	//Return last IR command recieved
+	//Return last IR command received
 	packet->type = IR_DATA;
-
+	packet->payload.ir_data.roomba_number = roomba_num;
+	packet->payload.ir_data.ir_data = IR_getLast();
 	Radio_Transmit(packet, RADIO_RETURN_ON_TX);
 }
 
@@ -256,6 +265,29 @@ void jordan1()
 	}
 }
 
+#define JORDAN_DEBUG_INIT (DDRB |= (1 << PB4));
+#define JORDAN_DEBUG_ON (PORTB |= (1<<PB4));
+#define JORDAN_DEBUG_OFF (PORTB &= ~(1<<PB4));
+
+void _blink_led()
+{
+	int16_t count = 2*Task_GetArg();
+	while(count >=0)
+	{
+		// TOGGLE the LED
+		PORTB ^= ( 1 << PB4);
+		--count;
+		Task_Next();
+	}
+	JORDAN_DEBUG_OFF
+}
+
+void blink_led(int16_t num_blinks,int16_t delay)
+{
+	JORDAN_DEBUG_INIT
+	Task_Create_Periodic(_blink_led,num_blinks,delay,1,Now() + 1);
+}
+
 
 int r_main(void)
 {
@@ -284,7 +316,8 @@ int r_main(void)
 	radio_receive_service = Service_Init();
 	ir_receive_service = Service_Init();
 
-	Task_Create_Periodic(jordan1,0,20,10,252);
+	blink_led(10,20);
+	//Task_Create_Periodic(jordan1,0,20,10,252);
 
 	// Task_Create_Periodic(send_packet_task,0,200,100,252);
 	//Task_Create_RR(rr_roomba_controler,0);
@@ -298,3 +331,4 @@ int r_main(void)
 	Task_Terminate();
 	return 0 ;
 }
+*/

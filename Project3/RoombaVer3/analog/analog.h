@@ -10,6 +10,11 @@ void Analog_poll(uint16_t output_values[16]);
 #endif
 
 /*
+References:
+From Paul Hunter
+https://bennthomsen.wordpress.com/arduino/peripherals/analogue-input/
+http://www.avrfreaks.net/forum/tut-c-newbies-guide-avr-adc?name=PNphpBB2&file=viewtopic&t=56429
+
 ADMUX - ADC multiplexer selection register
     REFS2,REFS1
     00 - AREF, Internal Vref turned off

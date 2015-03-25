@@ -51,6 +51,19 @@ void Roomba_UpdateSensorPacket(ROOMBA_SENSOR_GROUP group, roomba_sensor_data_t* 
  */
 void Roomba_Drive( int16_t velocity, int16_t radius );
 
+/**
+ * Send a set LED command to the Roomba
+ *
+ * \param led_bits - a bit mask determine which LED to light up.
+ *      - | - | - | - |  check robot |  Dock | Spot | Debris
+ * \param color  - The color to use for the LED. Values 0 = green, 255 = red
+ * \param intensity  - The intensity of the light. 0 = Off, 255 = full
+ * Example Commnad -
+ *  Turn on the HOME LED and light the Power LED green at half intensity
+ *  [139][4][0][128]
+ */
+void Roomba_LED(int8_t led_bits,int8_t color, int8_t intensity);
+
 void Roomba_Finish();
 
 #endif /* ROOMBA_H_ */

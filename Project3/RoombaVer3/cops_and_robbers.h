@@ -19,12 +19,12 @@ extern uint8_t ROOMBA_FREQUENCIES[];
 typedef enum _ir_commands{
 	SEND_BYTE,
 	REQUEST_DATA,
-	AIM_SERVO
 } IR_COMMANDS;
 
 typedef enum _roomba_statues{
 	ROOMBA_ALIVE,
 	ROOMBA_DEAD
 }ROOMBA_STATUSES;
+
 
 #endif /* COPS_AND_ROBBERS_H_ */

@@ -13,11 +13,11 @@
 
 extern void ir_rxhandler();
 
-volatile uint8_t is_receiving = 0;
-volatile uint8_t is_transmitting = 0;
-volatile uint8_t currentBit = 0;
-volatile uint8_t currentByte = 0;
-volatile uint8_t outputByte = 0;
+static volatile uint8_t is_receiving = 0;
+static volatile uint8_t is_transmitting = 0;
+static volatile uint8_t currentBit = 0;
+static volatile uint8_t currentByte = 0;
+static volatile uint8_t outputByte = 0;
 
 
 // enable the interrupt handler for the timer register

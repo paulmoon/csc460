@@ -20,6 +20,12 @@
 #define SPI_MISO PORTB3	// MISO pin (Master in, Slave out)
 #define SPI_SCK PORTB1	// SCK pin (SPI clock)
 #define SPI_SS PORTB0	// SS pin (Slave Select)
+// #define SPI_MOSI PB2 // MOSI pin (Master out, Slave in)
+// #define SPI_MISO PB3 // MISO pin (Master in, Slave out)
+// #define SPI_SCK PB1  // SCK pin (SPI clock)
+// #define SPI_SS PB0   // SS pin (Slave Select)
+
+
 
 // wait for an SPI read/write operation to complete
 #define SPI_WAIT()              while ((SPSR & _BV(SPIF)) == 0);
