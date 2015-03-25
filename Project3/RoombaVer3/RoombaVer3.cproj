@@ -109,6 +109,12 @@
     </ToolchainSettings>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="analog\analog.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="analog\analog.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="cops_and_robbers.c">
       <SubType>compile</SubType>
     </Compile>
@@ -178,7 +184,7 @@
     <Compile Include="rtos\timer.h">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="testing_radio\RoombaVer3.c">
+    <Compile Include="testing\RoombaVer3.c">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="trace\trace.c">
@@ -202,8 +208,9 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="ir\" />
+    <Folder Include="analog" />
+    <Folder Include="testing" />
     <Folder Include="trace_uart" />
-    <Folder Include="testing_radio" />
     <Folder Include="rtos" />
     <Folder Include="trace" />
     <Folder Include="radio\" />
