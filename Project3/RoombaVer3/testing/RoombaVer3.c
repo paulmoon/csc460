@@ -284,7 +284,7 @@ int r_main(void)
 	radio_receive_service = Service_Init();
 	ir_receive_service = Service_Init();
 
-	//Task_Create_Periodic(jordan1,0,20,10,252);
+	Task_Create_Periodic(jordan1,0,20,10,252);
 
 	// Task_Create_Periodic(send_packet_task,0,200,100,252);
 	//Task_Create_RR(rr_roomba_controler,0);

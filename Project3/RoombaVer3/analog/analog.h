@@ -1,8 +1,11 @@
 #ifndef _ANALOG_H_
 #define _ANALOG_H_
 
+#define ANALOG_NUM_PINS 16
+
 void Analog_init();
 uint16_t Analog_read(uint8_t pin_number);
+void Analog_poll(uint16_t output_values[16]);
 
 #endif
 

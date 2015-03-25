@@ -1,4 +1,5 @@
-#include "avr/io.h"
+#include <avr/io.h>
+#include <avr/interrupt.h>
 #include "analog.h"
 
 // Digital Pin 10 should be attached to an LED
@@ -22,6 +23,7 @@ void Analog_init()
     // ADCSRB
     // free running mode is default
 
+    //ADCSRA |= (1 << ADIE);  // Enable the ADC interrupt handler
     ADCSRA |= (1 << ADEN);  // Enable ADC
     ADCSRA |= (1 << ADSC);  // Start A2D Conversions for initialization
 
@@ -58,7 +60,6 @@ uint16_t Analog_read(uint8_t pin_number)
 
     // kick off a read/conversion from the pin
     ADCSRA |= (1 << ADSC);
-
     // pause until the ADCSRA is done its conversion before trying to read
     while( ADCSRA & (1<<ADSC) );
 
@@ -67,3 +68,41 @@ uint16_t Analog_read(uint8_t pin_number)
     uint16_t high = ADCH;
     return ((high << 8) | low);
 }
+
+/*
+    Read all the values of each analog pin.
+    Place the result into the specific index into the
+    passed in array.
+*/
+void Analog_poll(uint16_t* output_values)
+{
+    if( output_values == 0){return;}
+    uint16_t low,high;
+
+    for(int i = 0; i < ANALOG_NUM_PINS; ++i)
+    {
+        // select pin 'i' to read from
+        _setup_pin(i);
+
+        // kick off conversion; then wait until its done
+        ADCSRA |= ( 1 << ADSC);
+        while( ADCSRA & (1<<ADSC) );
+
+        // read low byte, then high byte
+        low = ADCL;
+        high = ADCH;
+
+        // store the read value into the output array
+        output_values[i] = ((high << 8) | low);
+    }
+}
+
+/*
+User defined function which is passed in the latest read value
+*/
+// extern void Analog_read_handler(uint16_t value);
+// ISR(ADC_vect) {
+//     uint16_t low = ADCL;
+//     uint16_t high = ADCH;
+//     Analog_read_handler((high << 8) | low);
+// }
