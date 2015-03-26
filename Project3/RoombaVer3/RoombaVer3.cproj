@@ -160,6 +160,12 @@
     <Compile Include="roomba\roomba.h">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="roomba\roomba_led_sci.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="roomba\roomba_led_sci.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="roomba\roomba_sci.h">
       <SubType>compile</SubType>
     </Compile>
@@ -216,6 +222,11 @@
     <Folder Include="radio\" />
     <Folder Include="roomba\" />
     <Folder Include="uart\" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="BaseStation.cpp">
+      <SubType>compile</SubType>
+    </None>
   </ItemGroup>
   <Import Project="$(AVRSTUDIO_EXE_PATH)\\Vs\\Compiler.targets" />
 </Project>

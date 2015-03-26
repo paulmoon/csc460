@@ -1,38 +1,9 @@
-/*
- * RoombaVer3.c
- *
- * Created: 2015-03-05 13:32:56
- *  Author: Daniel
- */
+#if 0
+#define USE_BASE_STATION
+#include "BaseStation.cpp"
 
-// IR Transmitter
-// - 			= GND
-// (middle)	=
-// s 			= 2.2 Ohz -- 44
+#else
 
-// IR Receiver
-// -			= Gnd
-// (middle)	= Vcc
-// s 			= 3
-
-// Radio
-// CE 	= 8
-// CSN 	= 9
-// SCK 	= 52
-// MO  	= 51
-// MI 	= 50
-// IRQ	= 2
-// VCC 	= 47
-// GND 	= GND
-
-// Roomba  		ATMega
-// Red(6.3v)		Vin
-// Orange(GND)		GND
-// Yellow(Tx)		19
-// Green(Rx)		18
-// DD 				20
-
-//#define F_CPU 16000000UL
 #include <avr/io.h>
 #include "os.h"
 #include "roomba.h"
@@ -48,7 +19,6 @@
 #include "profiler.h"
 #include "analog/analog.h"
 
-
 SERVICE* radio_receive_service;
 SERVICE* ir_receive_service;
 OS_TIMER roomba_timeout_timer;
@@ -59,11 +29,9 @@ COPS_AND_ROBBERS roomba_num = COP1;
 volatile ROOMBA_STATUSES current_roomba_status = ROOMBA_ALIVE;
 volatile uint8_t last_ir_value = 0;
 
-
 #define JORDAN_DEBUG_INIT (DDRB |= (1 << PB4));
 #define JORDAN_DEBUG_ON (PORTB |= (1<<PB4));
 #define JORDAN_DEBUG_OFF (PORTB &= ~(1<<PB4));
-
 void _blink_led()
 {
 	int16_t count = 2*Task_GetArg();
@@ -208,19 +176,16 @@ void rr_roomba_controler() {
 
 			result = Radio_Receive(&packet);
 			if(result == RADIO_RX_SUCCESS || result == RADIO_RX_MORE_PACKETS) {
-				//Profile5();
 
-
-				for(int i = 0;i < 100;++i){
+				// blink the LED
+				for(int i = 0;i < 1000;++i){
 					JORDAN_DEBUG_ON;
 				}
-				//blink_led(1, 100);
 
 				if(packet.type == COMMAND) {
 					handleRoombaPacket(&packet);
 				}
 
-				//Handle IR Commands
 				if(packet.type == IR_COMMAND) {
 					handleIRPacket(&packet);
 				}
@@ -254,61 +219,56 @@ void per_roomba_timeout() {
 	}
 }
 
-void send_packet_task()
+
+int8_t led_bits = 0;
+int8_t color = 0;
+int8_t intensity = 0;
+void shield_status(int i){
+	if( i == 0) {
+		// shield off
+		led_bits &= ~(1 << 0);
+	}else{
+		// shield on
+		led_bits |= (1 << 0);
+	}
+	Roomba_LED(led_bits,color,intensity);
+}
+
+void set_color(int type){
+	if( type == 0){
+		color = 255;
+		intensity = 255;
+	}else if( type == 1){
+		color = 0;
+		intensity = 255;
+	}else{
+		color = 0;
+		intensity = 0;
+	}
+	Roomba_LED(led_bits,color,intensity);
+}
+
+void blink_roomba_led()
 {
-	// Set the radio's destination address to be the remote station's address
-	Radio_Set_Tx_Addr(ROOMBA_ADDRESSES[COP1]);
-	int16_t vel = 50;
-	int16_t rad = 8000;
-
 	for(;;){
-		// Profile1();
-
-		uint16_t vx = Analog_read(0);
-		uint16_t vy = Analog_read(1);
-
-		radiopacket_t packet;
-		packet.type = COMMAND;
-		for(int i =0;i < 5; ++i){
-			packet.payload.command.sender_address[i] = ROOMBA_ADDRESSES[COP2][i];
-		}
-		packet.payload.command.command = DRIVE;
-		packet.payload.command.num_arg_bytes = 4;
-
-		vx = ((vx /(1024/5)) - 2)*50;
-		vy = ((vy /(1024/5)) - 2)*100;
-
-
-		packet.payload.command.arguments[0] = HIGH_BYTE(vx);
-		packet.payload.command.arguments[1] = LOW_BYTE(vx);
-		packet.payload.command.arguments[2] = HIGH_BYTE(vy);
-		packet.payload.command.arguments[3] = LOW_BYTE(vy);
-
-		// Radio_Transmit(&packet, RADIO_RETURN_ON_TX);
-		Radio_Transmit(&packet, RADIO_WAIT_FOR_TX);
+		Roomba_led_debris(1);
+		Task_Next();
+		Roomba_led_debris(0);
+		Task_Next();
+		Roomba_led_spot(1);
+		Task_Next();
+		Roomba_led_spot(0);
+		Task_Next();
+		Roomba_led_dock(1);
+		Task_Next();
+		Roomba_led_dock(0);
+		Task_Next();
+		Roomba_led_warn(1);
+		Task_Next();
+		Roomba_led_warn(0);
 		Task_Next();
 	}
 }
-
-void dump_trace()
-{
-	print_trace();
-}
-
-void jordan1()
-{
-	for(;;){
-		uint16_t a = Analog_read(9);
-		add_to_trace(a);
-
-		if(is_trace_full()){
-			Task_Create_RR(dump_trace,0);
-			Task_Terminate();
-		}
-		Task_Next();
-	}
-}
-
 
 int r_main(void)
 {
@@ -325,32 +285,20 @@ int r_main(void)
 	//Initialize radio.
 	cli();
 	Radio_Init();
-	//IR_init();
-	// Radio_Configure_Rx(RADIO_PIPE_0, ROOMBA_ADDRESSES[roomba_send], ENABLE);
-	Radio_Configure_Rx(RADIO_PIPE_0, ROOMBA_ADDRESSES[COP1], ENABLE);
-	// Radio_Configure_Rx(RADIO_PIPE_0, ROOMBA_ADDRESSES[COP2], ENABLE);
-	//Radio_Configure_Rx(RADIO_PIPE_0, ROOMBA_ADDRESSES[roomba_send], ENABLE);
-
+	IR_init();
+	Radio_Configure_Rx(RADIO_PIPE_0, ROOMBA_ADDRESSES[roomba_num], ENABLE);
 	Radio_Configure(RADIO_2MBPS, RADIO_HIGHEST_POWER);
 	sei();
 
 	radio_receive_service = Service_Init();
 	ir_receive_service = Service_Init();
 
-	//blink_led(10,20);
-	//Task_Create_Periodic(jordan1,0,20,10,252);
-
-	// Task_Create_Periodic(send_packet_task,0,20,10,252);
 	JORDAN_DEBUG_INIT
 	Task_Create_RR(rr_roomba_controler,0);
-	//blink_led(5,100);
+	Task_Create_Periodic(blink_roomba_led,0,200,10,252);
 
-	//Task_Create_Periodic(poll_pin, 0, 100, 10, 300);
-	// Task_Create_Periodic(check_button,0,20,9,250);
-	// Task_Create_Periodic(send_packet_task,0,100,10,252);
-//	Task_Create_Periodic(p,0,200,9,251);
-	//Task_Create_Periodic(transmit_ir,0,250,10, 303);
-	//Task_Create_RR(transmit_ir, 0);
 	Task_Terminate();
 	return 0 ;
 }
+
+#endif
