@@ -16,14 +16,17 @@ void Analog_init()
     // Set ADC prescalar to 128 - 125KHz sample rate @ 16MHz (p 281)
     ADCSRA |= (1 << ADPS2) | (1 << ADPS1) | (1 << ADPS0);
 
+    ADMUX = 0;
     ADMUX |= (1 << REFS0); // Set ADC reference to AVCC
     //ADMUX |= (1 << ADLAR); // Left adjust ADC result to allow easy 8 bit reading
     // No MUX5:0 bits need to be changed to use ADC0
 
     // ADCSRB
+    ADCSRB = 0;
     // free running mode is default
 
     //ADCSRA |= (1 << ADIE);  // Enable the ADC interrupt handler
+    ADCSRA = 0;
     ADCSRA |= (1 << ADEN);  // Enable ADC
     ADCSRA |= (1 << ADSC);  // Start A2D Conversions for initialization
 
@@ -38,16 +41,10 @@ void Analog_init()
     See p282 for full details on how to use selection.
 */
 static void _setup_pin(uint8_t pin_number){
-    if( pin_number <= 7){
-        ADCSRB &= ~(1 << MUX5); // set the MUX5 bit to zero
-        ADMUX  |= pin_number;    // set the MUX4:0 bits
 
-    }else if( pin_number <= 15){
-        ADCSRB |= (1 << MUX5); // set the MUX5 bit to 1
-        ADMUX  |= (pin_number - 8); // set the MUX4:0 bits
-    }else{
-        // shit...
-    }
+    ADMUX &= 0xE0;	// clear the MUX4:0 bits
+    ADMUX |= pin_number&0x07; // set to read from the correct pin number
+	ADCSRB = pin_number&(1<<3); // set the MUX5 bit if necessary
 }
 
 /*
