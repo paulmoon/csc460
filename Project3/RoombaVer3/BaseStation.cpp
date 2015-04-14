@@ -22,7 +22,7 @@ OS_TIMER roomba_timeout_timer;
 
 volatile uint8_t is_roomba_timedout = 0;
 
-COPS_AND_ROBBERS roomba_num = COP2;
+GAME_PLAYERS roomba_num = PLAYER2;
 volatile ROOMBA_STATUSES current_roomba_status = ROOMBA_ALIVE;
 volatile uint8_t last_ir_value = 0;
 
@@ -33,19 +33,20 @@ void radio_rxhandler(uint8_t pipenumber) {
 
 //Handle expected IR values, record unexpected values to pass on via radio.
 //  (Get Roomba state via state packets)
+// NEED TO CHANGE!
 void ir_rxhandler() {
     uint8_t ir_value = IR_getLast();
     //Service_Publish(radio_receive_service,0);
     Service_Publish(ir_receive_service,0);
     if(last_ir_value == IR_SHOOT) {
         current_roomba_status = ROOMBA_DEAD;
-    } else if(roomba_num == COP1 && last_ir_value == IR_WAKE_COP1) {
+    } else if(roomba_num == PLAYER1 && last_ir_value == IR_WAKE_COP1) {
         current_roomba_status = ROOMBA_ALIVE;
-    } else if(roomba_num == COP2 && last_ir_value == IR_WAKE_COP2) {
+    } else if(roomba_num == PLAYER2 && last_ir_value == IR_WAKE_COP2) {
         current_roomba_status = ROOMBA_ALIVE;
-    } else if(roomba_num == ROBBER1 && last_ir_value == IR_WAKE_ROBBER1) {
+    } else if(roomba_num == PLAYER3 && last_ir_value == IR_WAKE_ROBBER1) {
         current_roomba_status = ROOMBA_ALIVE;
-    } else if(roomba_num == ROBBER2 && last_ir_value == IR_WAKE_ROBBER2) {
+    } else if(roomba_num == PLAYER4 && last_ir_value == IR_WAKE_ROBBER2) {
         current_roomba_status = ROOMBA_ALIVE;
     } else {
         last_ir_value = ir_value;
@@ -55,13 +56,14 @@ void ir_rxhandler() {
 void send_packet_task()
 {
     // Set the radio's destination address to be the remote station's address
-    Radio_Set_Tx_Addr(ROOMBA_ADDRESSES[COP1]);
+    Radio_Set_Tx_Addr(ROOMBA_ADDRESSES[PLAYER1]);
+    char code[30];
 
     for(;;){
-        Profile1();
+        //Profile1();
 
-        uint16_t vx = Analog_read(0);
-        uint16_t vy = Analog_read(1);
+        uint16_t vx = Analog_read(1);
+        uint16_t vy = Analog_read(2);
 
         radiopacket_t packet;
         packet.type = COMMAND;
@@ -71,8 +73,18 @@ void send_packet_task()
         packet.payload.command.command = DRIVE;
         packet.payload.command.num_arg_bytes = 4;
 
-        vx = ((vx /(1024/5)) - 2)*50;
-        vy = ((vy /(1024/5)) - 2)*100;
+        // vx = ((vx /(1024/5)) - 2)*50;
+        // vy = ((vy /(1024/5)) - 2)*100;
+
+        // output the trace
+        //EnableProfileSample1();
+        //sprintf(code,"%d %d\n",vx,vy);
+        //trace_uart_putstr(code);
+        //DisableProfileSample1();
+        //trace_uart_putchar((int8_t)vx);
+        //trace_uart_putchar(' ');
+        //trace_uart_putchar((int8_t)vy);
+        //trace_uart_putchar('\n');
 
         packet.payload.command.arguments[0] = HIGH_BYTE(vx);
         packet.payload.command.arguments[1] = LOW_BYTE(vx);
@@ -81,6 +93,7 @@ void send_packet_task()
 
         // Radio_Transmit(&packet, RADIO_RETURN_ON_TX);
         Radio_Transmit(&packet, RADIO_WAIT_FOR_TX);
+		Profile1();
         Task_Next();
     }
 }
@@ -103,7 +116,8 @@ int r_main(void)
     Radio_Init();
     IR_init();
     Radio_Configure_Rx(RADIO_PIPE_0, ROOMBA_ADDRESSES[roomba_num], ENABLE);
-    Radio_Configure(RADIO_2MBPS, RADIO_HIGHEST_POWER);
+    // Radio_Configure(RADIO_2MBPS, RADIO_HIGHEST_POWER);
+    Radio_Configure(RADIO_1MBPS, RADIO_HIGHEST_POWER);
     sei();
 
     radio_receive_service = Service_Init();

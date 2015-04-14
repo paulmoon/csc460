@@ -17,6 +17,5 @@ uint8_t ROOMBA_ADDRESSES[4][5] = {
 
 uint8_t ROOMBA_FREQUENCIES [4] = {104, 106, 108, 110};
 
-
 // each roomba on a differnent freq
 // base station

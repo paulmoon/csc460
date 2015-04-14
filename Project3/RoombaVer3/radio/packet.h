@@ -26,6 +26,9 @@ typedef enum _pt
 
 	REQUEST_ROOMBA_STATUS_UPDATE,	/// request the current Roomba status, can also revive a Roomba.
 	ROOMBA_STATUS_UPDATE,			/// the Roomba's current status
+
+	GAME,					/// Game type of packets
+
 	MESSAGE					/// a generic message (not implemented by the Roomba)
 } PACKET_TYPE;
 
@@ -85,6 +88,14 @@ typedef struct _msg
 	uint8_t messagecontent[24];
 } pf_message_t;
 
+
+
+typedef struct _game_packet {
+	uint8_t type;	// GAME_ARE_YOU_READY,GAME_START,GAME_PROGRESS,GAME_OVER,ACK
+	game_data_t data; // max of 28 bytes
+
+} pf_game_packet_t;
+
 /*****							Add format structures to the union							*****/
 
 /// The application-dependent packet format.  Add structures to the union that correspond to the packet types defined
@@ -99,6 +110,9 @@ typedef union _pf
 	pf_ir_command_t ir_command;
 	pf_status_command_t status_command;
 	pf_status_info_t status_info;
+
+	pf_game_packet_t game;
+
 	pf_message_t message;
 } payloadformat_t;
 

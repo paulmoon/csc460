@@ -16,7 +16,6 @@
 //#define LED_TOGGLE		PORTB ^= _BV(PB7)
 
 // non-public constants and macros
-
 #define CHANNEL 104
 #define ADDRESS_LENGTH 5
 

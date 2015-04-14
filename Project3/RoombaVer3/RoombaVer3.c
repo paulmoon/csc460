@@ -8,6 +8,7 @@
 #include "os.h"
 #include "roomba.h"
 #include "roomba_sci.h"
+#include "roomba_led_sci.h"
 #include "radio.h"
 #include "timer.h"
 
@@ -25,7 +26,7 @@ OS_TIMER roomba_timeout_timer;
 
 volatile uint8_t is_roomba_timedout = 0;
 
-COPS_AND_ROBBERS roomba_num = COP1;
+GAME_PLAYERS roomba_num = PLAYER1;
 volatile ROOMBA_STATUSES current_roomba_status = ROOMBA_ALIVE;
 volatile uint8_t last_ir_value = 0;
 
@@ -53,7 +54,6 @@ void blink_led(int16_t num_blinks,int16_t delay)
 }
 
 
-
 void radio_rxhandler(uint8_t pipenumber) {
 	Profile1();
 	Service_Publish(radio_receive_service,0);
@@ -67,13 +67,13 @@ void ir_rxhandler() {
 	Service_Publish(ir_receive_service,0);
 	if(last_ir_value == IR_SHOOT) {
 		current_roomba_status = ROOMBA_DEAD;
-	} else if(roomba_num == COP1 && last_ir_value == IR_WAKE_COP1) {
+	} else if(roomba_num == PLAYER1 && last_ir_value == IR_WAKE_COP1) {
 		current_roomba_status = ROOMBA_ALIVE;
-	} else if(roomba_num == COP2 && last_ir_value == IR_WAKE_COP2) {
+	} else if(roomba_num == PLAYER2 && last_ir_value == IR_WAKE_COP2) {
 		current_roomba_status = ROOMBA_ALIVE;
-	} else if(roomba_num == ROBBER1 && last_ir_value == IR_WAKE_ROBBER1) {
+	} else if(roomba_num == PLAYER3 && last_ir_value == IR_WAKE_ROBBER1) {
 		current_roomba_status = ROOMBA_ALIVE;
-	} else if(roomba_num == ROBBER2 && last_ir_value == IR_WAKE_ROBBER2) {
+	} else if(roomba_num == PLAYER4 && last_ir_value == IR_WAKE_ROBBER2) {
 		current_roomba_status = ROOMBA_ALIVE;
 	} else {
 		last_ir_value = ir_value;
@@ -175,6 +175,7 @@ void rr_roomba_controler() {
 		do {
 
 			result = Radio_Receive(&packet);
+			//Profile1();
 			if(result == RADIO_RX_SUCCESS || result == RADIO_RX_MORE_PACKETS) {
 
 				// blink the LED
@@ -287,7 +288,8 @@ int r_main(void)
 	Radio_Init();
 	IR_init();
 	Radio_Configure_Rx(RADIO_PIPE_0, ROOMBA_ADDRESSES[roomba_num], ENABLE);
-	Radio_Configure(RADIO_2MBPS, RADIO_HIGHEST_POWER);
+	// Radio_Configure(RADIO_2MBPS, RADIO_HIGHEST_POWER);
+	Radio_Configure(RADIO_1MBPS, RADIO_HIGHEST_POWER);
 	sei();
 
 	radio_receive_service = Service_Init();
@@ -295,7 +297,7 @@ int r_main(void)
 
 	JORDAN_DEBUG_INIT
 	Task_Create_RR(rr_roomba_controler,0);
-	Task_Create_Periodic(blink_roomba_led,0,200,10,252);
+	//Task_Create_Periodic(blink_roomba_led,0,200,10,252);
 
 	Task_Terminate();
 	return 0 ;
